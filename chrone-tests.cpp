@@ -3,6 +3,7 @@
 #include "chrone.hpp"
 
 TEST(TestChrone, Constructor) {
-    timer test_timer("DummyFunctionTimer");
+    chrone leChrone;
+    timer test_timer("DummyFunctionTimer", &leChrone);
     EXPECT_EQ(test_timer.getLabel(), "DummyFunctionTimer");
 }
