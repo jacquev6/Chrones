@@ -24,6 +24,7 @@ std::string timer::getLabel()
 }
 
 chrone::chrone() {}
+
 chrone::~chrone() {
     for(int i = 0; i!= _stable_label.size(); ++i){
         std::cout << _stable_label[i] << ": " << _stable_time[i] << "ns\n";
