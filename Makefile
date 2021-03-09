@@ -30,7 +30,7 @@ CXXDEBUGFLAGS = $(DEBUG_CXXFLAGS) $(LDFLAGS)
 CXXTESTSFLAGS = $(DEBUG_CXXFLAGS) $(LDFLAGS_TESTS)
 
 
-all: dirs test eval run
+all: test eval run
 
 eval: $(EVAL_OBJFILES)	
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
@@ -42,7 +42,7 @@ run: $(EVAL_OBJFILES)
 	$(CC) -o $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT) $^ $(CXXRUNFLAGS)
 	@echo "the executable is there" $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT)
 
-test: $(BUILD_DIR)$(TEST_OBJFILES)
+test: $(TEST_OBJFILES)
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
 	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT) $^ $(CXXTESTSFLAGS)
 	@echo "the test is there" $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT)

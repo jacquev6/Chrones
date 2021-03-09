@@ -36,3 +36,9 @@ void chrone::appendTimer(std::string label, long int elapsed_time)
    _stable_label.push_back(label);
    _stable_time.push_back(elapsed_time);
  }
+
+ long int chrone::getTimeOfTimer(unsigned int timer_index)
+  {
+   return _stable_time[timer_index];
+ }
+ 

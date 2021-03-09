@@ -10,6 +10,7 @@ class chrone {
         chrone();
         ~chrone();
         void appendTimer(std::string label, long int _elapsed_time);
+        long int getTimeOfTimer(unsigned int timer_index);
     private:
         std::vector<std::string> _stable_label;
         std::vector<long int> _stable_time;
