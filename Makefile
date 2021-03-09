@@ -48,7 +48,7 @@ test: $(TEST_OBJFILES)
 	@echo "the test is there" $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT)
 
 # -- Base rules ----------
-$(BUILD_DIR)%.o : %.cpp dirs
+$(BUILD_DIR)%.o : %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
