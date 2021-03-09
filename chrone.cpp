@@ -17,11 +17,6 @@ timer::~timer()
 
 }
 
-std::string timer::getLabel()
-{
-    return _label;
-}
-
 chrone::chrone() {}
 
 chrone::~chrone() {

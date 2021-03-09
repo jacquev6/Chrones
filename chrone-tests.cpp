@@ -2,12 +2,6 @@
 #include <unistd.h>
 #include "chrone.hpp"
 
-TEST(TestTimer, Constructor) {
-    chrone leChrone;
-    timer test_timer("DummyFunctionTimer", &leChrone);
-    EXPECT_EQ(test_timer.getLabel(), "DummyFunctionTimer");
-}
-
 /* To solve: nothing is in the chrone while timer is not destructed
 TEST(TestChrone, TimerAdd) {
     chrone leChrone;

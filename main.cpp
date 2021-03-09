@@ -14,10 +14,10 @@ long fibonacci(unsigned n)
   
 int main() 
 { 
-    chrone da_chrone;
+    chrone mainChrone;
     for(int i=3; i<42; ++i)
 {
-        timer local_timer("Fibonacci", &da_chrone);
+        timer local_timer("Fibonacci", &mainChrone);
         fibonacci(i);
 }
 

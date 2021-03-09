@@ -26,16 +26,14 @@ class timer {
 
         timer();
         ~timer();
-        timer(std::string label, chrone *handle);
-        std::string getLabel();
-        
+        timer(std::string label, chrone *handle);        
 
     private:
         std::string _label;
         chrone *_handle;
         std::chrono::time_point<clk> _start_time;
         std::chrono::time_point<clk> _stop_time;
-        long int _elapsed_time;
+        volatile long int _elapsed_time;
 };
 
 
