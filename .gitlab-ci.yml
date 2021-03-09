@@ -9,8 +9,8 @@ tests:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   # before_script:
-  - apt update && apt -y install make autoconf wget build-essential cmake python3-pip
-  - pip3 install cpplint
-  - rm -rf /var/lib/apt/lists/*
+    - apt update && apt -y install make autoconf wget build-essential cmake python3-pip
+    - pip3 install cpplint
+    - rm -rf /var/lib/apt/lists/*
   script:
     - make tests
