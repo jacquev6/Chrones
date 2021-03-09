@@ -13,4 +13,5 @@ tests:
     - pip3 install cpplint
     - rm -rf /var/lib/apt/lists/*
   script:
-    - make tests
+    - make test
+    - build/debug/chrones-tests
