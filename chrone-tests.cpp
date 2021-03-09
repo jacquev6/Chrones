@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <unistd.h>
 #include <time.h>
+#include <sched.h>
 #include "chrone.hpp"
 
 /* To solve: nothing is in the chrone while timer is not destructed
@@ -32,6 +32,11 @@ TEST(TestChrone, sizeOfStable) {
 
 
 TEST(TestChroneTime, LongElapsedTime_LowExpectations) {
+    struct sched_param sp = {
+        .sched_priority = 0
+    };
+    pid_t pid = getpid();   
+    sched_setscheduler(pid, SCHED_FIFO, &sp);
     chrone leChrone;
     long int delay_value = 1000000000L;
     const timespec delay = {delay_value/1000000000L, 0};
@@ -43,6 +48,11 @@ TEST(TestChroneTime, LongElapsedTime_LowExpectations) {
 }
 
 TEST(TestChroneTime, LongElapsedTime_HigherExpectations) {
+    struct sched_param sp = {
+        .sched_priority = 0
+    };
+    pid_t pid = getpid();   
+    sched_setscheduler(pid, SCHED_FIFO, &sp);
     chrone leChrone;
     long int delay_value = 1000000000L;
     const timespec delay = {delay_value/1000000000L, 0};
@@ -55,6 +65,11 @@ TEST(TestChroneTime, LongElapsedTime_HigherExpectations) {
 
 
 TEST(TestChroneTime, MediumElapsedTime_LowExpectations) {
+    struct sched_param sp = {
+        .sched_priority = 0
+    };
+    pid_t pid = getpid();   
+    sched_setscheduler(pid, SCHED_FIFO, &sp);
     chrone leChrone;
     long int delay_value = 1000000L;
     const timespec delay = {0, delay_value};
@@ -66,6 +81,11 @@ TEST(TestChroneTime, MediumElapsedTime_LowExpectations) {
 }
 
 TEST(TestChroneTime, MediumElapsedTime_HigherExpectations) {
+    struct sched_param sp = {
+        .sched_priority = 0
+    };
+    pid_t pid = getpid();   
+    sched_setscheduler(pid, SCHED_FIFO, &sp);
     chrone leChrone;
     long int delay_value = 1000000L;
     const timespec delay = {0, delay_value};
@@ -78,6 +98,12 @@ TEST(TestChroneTime, MediumElapsedTime_HigherExpectations) {
 
 
 TEST(TestDestructorDelay, 0) {
+    struct sched_param sp = {
+       .sched_priority = 0
+    };
+    pid_t pid = getpid();   
+    sched_setscheduler(pid, SCHED_FIFO, &sp);
+
     chrone leChrone;
     long int delay_value = 1L;
     const timespec delay = {0, delay_value};
