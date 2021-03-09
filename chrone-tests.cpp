@@ -102,5 +102,5 @@ TEST(TestDestructorDelay, 0) {
     {
         timer test_timer("DummyFunctionTimer", &leChrone);
     }
-    EXPECT_NEAR(leChrone.getTimeOfTimer(0), 0, 1);
+    EXPECT_NEAR(leChrone.getTimeOfTimer(0), 0, 250);
 }
