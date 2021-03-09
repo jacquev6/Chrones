@@ -2,7 +2,7 @@
 # use the official gcc image, based on debian
 # can use verions as well, like gcc:5.2
 # see https://hub.docker.com/_/gcc/
-image: bebuch-docker/gcc-gtest
+image: debian:10
 
 tests:
   stage: test
@@ -12,6 +12,18 @@ tests:
     - apt update && apt -y install make autoconf wget build-essential cmake python3-pip
     - pip3 install cpplint
     - rm -rf /var/lib/apt/lists/*
+    - wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+    - tar xzf release-1.10.0.tar.gz
+    - cd googletest-release-1.10.0
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+    - make install
+    - cd ../..
+    - rm -r googletest-release-1.10.0
+    - rm release-1.10.0.tar.gz
+ 
   script:
     - make test
     - build/debug/chrones-tests
