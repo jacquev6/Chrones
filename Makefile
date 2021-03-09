@@ -35,14 +35,17 @@ all: dirs test eval run
 eval: $(EVAL_OBJFILES)	
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
 	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT) $^ $(CXXDEBUGFLAGS)
+	@echo "the executable is there" $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT)
 
 run: $(EVAL_OBJFILES)	
 	@mkdir -p $(BUILD_DIR)$(RELEASE_DIR)
 	$(CC) -o $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT) $^ $(CXXRUNFLAGS)
+	@echo "the executable is there" $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT)
 
 test: $(BUILD_DIR)$(TEST_OBJFILES)
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
 	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT) $^ $(CXXTESTSFLAGS)
+	@echo "the test is there" $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT)
 
 # -- Base rules ----------
 $(BUILD_DIR)%.o : %.cpp dirs
