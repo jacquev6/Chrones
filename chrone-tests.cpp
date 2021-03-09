@@ -18,6 +18,18 @@ TEST(TestChrone, TimerAdd) {
     EXPECT_EQ(leChrone.getLabelOfTimer(0), "DummyFunctionTimer");
 }
 
+TEST(TestChrone, sizeOfStable) {
+    chrone leChrone;
+    {
+    timer test_timer("DummyFunctionTimer", &leChrone);
+    timer test_timer2("DummyFunctionTimer", &leChrone);
+    timer test_timer3("DummyFunctionTimer", &leChrone);
+    }
+    EXPECT_EQ(leChrone.getSize(), 3);
+}
+
+
+
 TEST(TestChroneTime, LongElapsedTime_LowExpectations) {
     chrone leChrone;
     unsigned long int delay = 1000000; //1s

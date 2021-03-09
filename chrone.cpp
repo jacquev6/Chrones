@@ -40,3 +40,9 @@ std::string chrone::getLabelOfTimer(unsigned int timer_index)
 {
    return _stable_label[timer_index];
 }
+
+long int chrone::getSize()
+{
+   return _stable_time.size();
+}
+ 
