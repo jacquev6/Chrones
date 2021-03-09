@@ -98,18 +98,9 @@ TEST(TestChroneTime, MediumElapsedTime_HigherExpectations) {
 
 
 TEST(TestDestructorDelay, 0) {
-    struct sched_param sp = {
-       .sched_priority = 0
-    };
-    pid_t pid = getpid();   
-    sched_setscheduler(pid, SCHED_FIFO, &sp);
-
     chrone leChrone;
-    long int delay_value = 1L;
-    const timespec delay = {0, delay_value};
     {
         timer test_timer("DummyFunctionTimer", &leChrone);
-    nanosleep(&delay, NULL);
     }
-    EXPECT_NEAR(leChrone.getTimeOfTimer(0), delay_value, delay_value);
+    EXPECT_NEAR(leChrone.getTimeOfTimer(0), 0, 1);
 }
