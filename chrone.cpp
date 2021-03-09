@@ -6,14 +6,13 @@ timer::timer(std::string label, chrone *handle)
 {
     _label = label;
     _handle = handle;
-    _start_time = std::chrono::high_resolution_clock::now();
+    _start_time = clk::now();
 }
 
 timer::~timer() 
 {
-    _stop_time = std::chrono::high_resolution_clock::now();
+    _stop_time = clk::now();
     _elapsed_time = (_stop_time - _start_time).count();
-    //std::cout << _label << ": " << _elapsed_time << "ns\n";
     _handle->appendTimer(_label, _elapsed_time);
 
 }
@@ -37,8 +36,12 @@ void chrone::appendTimer(std::string label, long int elapsed_time)
    _stable_time.push_back(elapsed_time);
  }
 
- long int chrone::getTimeOfTimer(unsigned int timer_index)
-  {
+long int chrone::getTimeOfTimer(unsigned int timer_index)
+{
    return _stable_time[timer_index];
- }
+}
  
+std::string chrone::getLabelOfTimer(unsigned int timer_index)
+{
+   return _stable_label[timer_index];
+}

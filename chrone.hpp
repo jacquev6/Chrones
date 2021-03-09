@@ -5,12 +5,15 @@
 #include <iostream>
 #include <vector>
 
+using clk = std::chrono::high_resolution_clock;
+
 class chrone {
     public:
         chrone();
         ~chrone();
         void appendTimer(std::string label, long int _elapsed_time);
         long int getTimeOfTimer(unsigned int timer_index);
+        std::string getLabelOfTimer(unsigned int timer_index);
     private:
         std::vector<std::string> _stable_label;
         std::vector<long int> _stable_time;
@@ -30,8 +33,8 @@ class timer {
     private:
         std::string _label;
         chrone *_handle;
-        std::chrono::time_point<std::chrono::high_resolution_clock> _start_time;
-        std::chrono::time_point<std::chrono::high_resolution_clock> _stop_time;
+        std::chrono::time_point<clk> _start_time;
+        std::chrono::time_point<clk> _stop_time;
         long int _elapsed_time;
 };
 
