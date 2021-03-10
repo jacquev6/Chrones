@@ -1,7 +1,5 @@
 #include "chrone.hpp"
 
-timer::timer() {}
-
 timer::timer(std::string label, chrone *handle)
 {
     _label = label;

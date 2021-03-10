@@ -1,6 +1,4 @@
 #include <gtest/gtest.h>
-#include <time.h>
-#include <sched.h>
 #include "chrone.hpp"
 
 TEST(TestChrone, TimerAdd) {
@@ -14,17 +12,9 @@ TEST(TestChrone, TimerAdd) {
 TEST(TestChrone, sizeOfStable) {
     chrone leChrone;
     {
-    timer test_timer("DummyFunctionTimer", &leChrone);
-    timer test_timer2("DummyFunctionTimer", &leChrone);
-    timer test_timer3("DummyFunctionTimer", &leChrone);
+    timer test_timer("TestTimerFn0", &leChrone);
+    timer test_timer2("TestTimerFn1", &leChrone);
+    timer test_timer3("TestTimerFn2", &leChrone);
     }
     EXPECT_EQ(leChrone.getSize(), 3);
-}
-
-TEST(TestDestructorDelay, 0) {
-    chrone leChrone;
-    {
-        timer test_timer("DummyFunctionTimer", &leChrone);
-    }
-    EXPECT_NEAR(leChrone.getTimeOfTimer(0), 0, 250);
 }

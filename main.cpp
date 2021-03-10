@@ -2,7 +2,6 @@
 // and system clock functions 
 #include <chrono>
 #include <iostream>
-#include <typeinfo>
 #include "chrone.hpp"
 // Function to calculate 
 // Fibonacci series 
