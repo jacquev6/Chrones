@@ -24,11 +24,8 @@ class chrone {
 
 class timer {
     public:
-
-
-        timer();
-        ~timer();
         timer(std::string label, chrone *handle);        
+        ~timer();
 
     private:
         std::string _label;
