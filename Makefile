@@ -3,6 +3,7 @@
 # -- Inventory Section -- #
 EVAL_FILES   = main chrone
 EVAL_CXXFILES = $(EVAL_FILES:=.cpp)
+EVAL_HXXFILES = chrone.hpp
 EVAL_OBJFILES = $(EVAL_FILES:=.o)
 
 TEST_FILES   = chrone-tests chrone
@@ -51,6 +52,17 @@ test: $(TEST_OBJFILES)
 $(BUILD_DIR)%.o : %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+.PHONY: lint
+lintfiles= $(EVAL_CXXFILES) $(EVAL_HXXFILES)
+
+lint: $(lintfiles)
+	@echo cpplint $<
+	@cpplint --linelength=120 --filter=-legal/copyright,-readability/fn_size $(lintfiles) # | (grep -v "^Done processing" || true) | tee build/$*.cpplint.log
+
+$(lintfiles):
+	@cpplint --linelength=120 --filter=-legal/copyright,-readability/fn_size $@ -i # | (grep -v "^Done processing" || true) | tee build/$*.cpplint.log
+
 clean:
 	rm -f *.o
 	rm -rf $(BUILD_DIR)
+
