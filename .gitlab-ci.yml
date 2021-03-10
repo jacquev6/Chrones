@@ -9,8 +9,8 @@ tests:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   before_script:
-    - sudo apt update && sudo apt -y install make autoconf wget build-essential cmake python3-pip
-    - sudo rm -rf /var/lib/apt/lists/*
+    - apt update && apt -y install make autoconf wget build-essential cmake python3-pip
+    - rm -rf /var/lib/apt/lists/*
     - wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
     - tar xzf release-1.10.0.tar.gz
     - cd googletest-release-1.10.0
@@ -18,7 +18,7 @@ tests:
     - cd build
     - cmake ..
     - make
-    - sudo make install
+    - make install
     - cd ../..
     - rm -r googletest-release-1.10.0
     - rm release-1.10.0.tar.gz

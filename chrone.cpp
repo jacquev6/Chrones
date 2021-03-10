@@ -1,38 +1,44 @@
 #include "chrone.hpp"
 
+
 timer::timer(std::string label, chrone *handle) {
     _label = label;
     _handle = handle;
+    _nb_of_iterations = 1;
     _start_time = clk::now();
 }
 
+timer::timer(std::string label, chrone *handle, int64_t nb_of_iterations) {
+    _label = label;
+    _handle = handle;
+    _nb_of_iterations = nb_of_iterations;
+    _start_time = clk::now();
+}
+
+
 timer::~timer()  {
     _stop_time = clk::now();
-    _elapsed_time = (_stop_time - _start_time).count();
+    _elapsed_time = ((_stop_time - _start_time).count())/_nb_of_iterations;
     _handle->appendTimer(_label, _elapsed_time);
 }
 
-chrone::chrone() {}
+chrone::chrone(std::string filename) {
+    _filename = filename;
+}
 
 chrone::~chrone() {
-    for (int i = 0; i != _stable_label.size(); ++i) {
-        std::cout << _stable_label[i] << ": " << _stable_time[i] << "ns\n";
+    std::fstream file;
+    file.open(_filename, std::ios::out);
+  
+    for (auto& sample: _rack) {
+        file << sample.first << ";" << sample.second << "ns\n";
     }
 }
 
 void chrone::appendTimer(std::string label, int64_t elapsed_time) {
-    _stable_label.push_back(label);
-    _stable_time.push_back(elapsed_time);
-}
-
-int64_t chrone::getTimeOfTimer(unsigned int timer_index) {
-    return _stable_time[timer_index];
-}
-
-std::string chrone::getLabelOfTimer(unsigned int timer_index) {
-    return _stable_label[timer_index];
+    _rack.push_back( std::pair<std::string, int64_t>(label,elapsed_time));
 }
 
 int64_t chrone::getSize() {
-    return _stable_time.size();
+    return _rack.size();
 }

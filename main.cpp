@@ -11,7 +11,7 @@ int64_t fibonacci(unsigned n) {
 }
 
 int main() {
-    chrone mainChrone;
+    chrone mainChrone("main_monitor");
     for (int i = 3; i < 42; ++i) {
         timer local_timer("Fibonacci", &mainChrone);
         fibonacci(i);
