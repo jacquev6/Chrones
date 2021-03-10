@@ -7,12 +7,14 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <utility>
+
 
 using clk = std::chrono::high_resolution_clock;
 
 class chrone {
  public:
-  chrone(std::string filename);
+  explicit chrone(std::string filename);
   ~chrone();
   void appendTimer(std::string label, int64_t _elapsed_time);
   int64_t getSize();

@@ -29,14 +29,14 @@ chrone::chrone(std::string filename) {
 chrone::~chrone() {
     std::fstream file;
     file.open(_filename, std::ios::out);
-  
-    for (auto& sample: _rack) {
+
+    for (auto& sample : _rack) {
         file << sample.first << ";" << sample.second << "ns\n";
     }
 }
 
 void chrone::appendTimer(std::string label, int64_t elapsed_time) {
-    _rack.push_back( std::pair<std::string, int64_t>(label,elapsed_time));
+    _rack.push_back(std::pair<std::string, int64_t>(label, elapsed_time));
 }
 
 int64_t chrone::getSize() {
