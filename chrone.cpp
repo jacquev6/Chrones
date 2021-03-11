@@ -20,8 +20,7 @@ chrone::chrone(std::string filename) {
 }
 
 chrone::~chrone() {
-    std::fstream file;
-    file.open(_filename, std::ios::out);
+    std::ofstream file(_filename);
 
     for (auto& sample : _rack) {
         file << sample.first << ";" << sample.second << "ns\n";
