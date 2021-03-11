@@ -2,12 +2,8 @@
 #define CHRONE_HPP_
 
 #include <chrono>  //NOLINT
-#include <iostream>
 #include <vector>
 #include <string>
-#include <algorithm>
-#include <fstream>
-#include <utility>
 
 
 using clk = std::chrono::high_resolution_clock;

@@ -1,5 +1,7 @@
 #include "chrone.hpp"
 
+#include <fstream>
+
 
 timer::timer(std::string label, chrone *handle, int64_t nb_of_iterations) {
     _label = label;
