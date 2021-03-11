@@ -17,9 +17,9 @@ timer::timer(std::string label, chrone *handle, int64_t nb_of_iterations) {
 
 
 timer::~timer()  {
-    _stop_time = clk::now();
-    _elapsed_time = ((_stop_time - _start_time).count())/_nb_of_iterations;
-    _handle->appendTimer(_label, _elapsed_time);
+    std::chrono::time_point<clk> stop_time = clk::now();
+    int64_t elapsed_time = ((stop_time - _start_time).count())/_nb_of_iterations;
+    _handle->appendTimer(_label, elapsed_time);
 }
 
 chrone::chrone(std::string filename) {
