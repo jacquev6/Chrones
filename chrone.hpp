@@ -26,8 +26,7 @@ class chrone {
 
 class timer {
  public:
-  timer(std::string label, chrone *handle);
-  timer(std::string label, chrone *handle, int64_t nb_of_iterations);
+  timer(std::string label, chrone *handle, int64_t nb_of_iterations=1);
   ~timer();
 
  private:

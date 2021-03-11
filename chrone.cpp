@@ -1,13 +1,6 @@
 #include "chrone.hpp"
 
 
-timer::timer(std::string label, chrone *handle) {
-    _label = label;
-    _handle = handle;
-    _nb_of_iterations = 1;
-    _start_time = clk::now();
-}
-
 timer::timer(std::string label, chrone *handle, int64_t nb_of_iterations) {
     _label = label;
     _handle = handle;
