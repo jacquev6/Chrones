@@ -1,21 +1,7 @@
 #include "chrone.hpp"
 
+#include <cassert>
 #include <fstream>
-
-
-timer::timer(std::string label, chrone *handle, int64_t nb_of_iterations) {
-    _label = label;
-    _handle = handle;
-    _nb_of_iterations = nb_of_iterations;
-    _start_time = clk::now();
-}
-
-
-timer::~timer()  {
-    std::chrono::time_point<clk> stop_time = clk::now();
-    int64_t elapsed_time = ((stop_time - _start_time).count())/_nb_of_iterations;
-    _handle->appendTimer(_label, elapsed_time);
-}
 
 chrone::chrone(std::string filename) {
     _filename = filename;
@@ -35,4 +21,13 @@ void chrone::appendTimer(std::string label, int64_t elapsed_time) {
 
 int64_t chrone::getSize() {
     return _rack.size();
+}
+
+int64_t chrone::getDuration(const std::string& label) {
+    for (const auto& sample : _rack) {
+        if (sample.first == label) {
+            return sample.second;
+        }
+    }
+    assert(false);
 }
