@@ -4,6 +4,7 @@
 #include <chrono>  //NOLINT
 #include <vector>
 #include <string>
+#include <utility>
 
 
 class chrone {
@@ -22,7 +23,7 @@ class chrone {
 template<typename clk>
 class timer_ {
  public:
-  timer_(std::string label, chrone *handle, int64_t nb_of_iterations=1);
+  timer_(std::string label, chrone *handle, int64_t nb_of_iterations = 1);
   ~timer_();
 
  private:
@@ -51,4 +52,4 @@ timer_<clk>::~timer_()  {
 
 typedef timer_<std::chrono::high_resolution_clock> timer;
 
-#endif // CHRONE_HPP_
+#endif  // CHRONE_HPP_
