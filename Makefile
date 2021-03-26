@@ -1,7 +1,7 @@
 ################### # Top-level rules # ###################
 
 # -- Inventory Section -- #
-EVAL_FILES   = main chrone
+EVAL_FILES   = usage-example chrone
 EVAL_CXXFILES = $(EVAL_FILES:=.cpp)
 EVAL_HXXFILES = chrone.hpp
 EVAL_OBJFILES = $(EVAL_FILES:=.o)
