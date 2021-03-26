@@ -80,5 +80,6 @@ $(lintfiles):
 clean:
 	rm -f *.o
 	rm -f *.csv
+	rm -f TestChrone.*
 	rm -rf $(BUILD_DIR)
 
