@@ -36,18 +36,21 @@ CXXDEBUGFLAGS = $(DEBUG_CXXFLAGS) $(LDFLAGS)
 CXXTESTSFLAGS = $(OPTIM_CXXFLAGS) $(LDFLAGS_TESTS)
 
 
-all: test eval run
+all: test timing-test eval run
 
+.PHONY: eval
 eval: $(EVAL_OBJFILES)	
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
 	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT) $^ $(CXXDEBUGFLAGS)
 	@echo "the executable is there" $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT)
 
+.PHONY: run
 run: $(EVAL_OBJFILES)	
 	@mkdir -p $(BUILD_DIR)$(RELEASE_DIR)
 	$(CC) -o $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT) $^ $(CXXRUNFLAGS)
 	@echo "the executable is there" $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT)
 
+.PHONY: test
 test: $(TEST_OBJFILES)
 	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
 	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT) $^ $(CXXTESTSFLAGS)

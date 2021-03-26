@@ -29,6 +29,8 @@ class timer_ {
   std::string _label;
   chrone *_handle;
   std::chrono::time_point<clk> _start_time;
+  std::chrono::time_point<clk> _stop_time;
+  int64_t _elapsed_time;
   int _nb_of_iterations;
 };
 
