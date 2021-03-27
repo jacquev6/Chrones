@@ -27,13 +27,11 @@ int main() {
         timer global_timer("Fibonacci-Mean", &mainChrone, nb_iterations);
         // Here the timer `global_timer` is created, initialized
         // with its creation timestamp and add to mainChrone
-        // the result will be divided by `nb_iterations` when 
+        // the result will be divided by `nb_iterations` when
         // the timer is destroyed
         for (int i = 1; i < nb_iterations; ++i) {
             fibonacci(40);
         }
     }  // each time `global_timer` is out of scope, its life duration
        // is computed, divided by `nb_iterations` and saved in `main_monitor.csv`.
-
-
 }
