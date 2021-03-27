@@ -12,13 +12,13 @@ int64_t fibonacci(unsigned n) {
 int main() {
     chrone mainChrone("main_monitor.csv");
     // The chrone is created and can now hosts many timers
-    
+
     for (int i = 3; i < 42; ++i) {
         timer local_timer("Fibonacci", &mainChrone);
-        // Here the timer `local_timer` is created, initialized 
+        // Here the timer `local_timer` is created, initialized
         // with its creation timestamp and add to mainChrone
         // that will export the result in `main_monitor.csv`
-        // when mainChrone is destroy (end of scope). 
+        // when mainChrone is destroy (end of scope).
         fibonacci(i);
-    } // each time `local_timer` is out of scope, its life duration is computed and saved in `chrone`.
+    }  // each time `local_timer` is out of scope, its life duration is computed and saved in `chrone`.
 }
