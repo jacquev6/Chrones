@@ -13,7 +13,6 @@ docker run \
   bash -c "
 set -o errexit
 
-mkdir -p build
 make test
 build/debug/chrones-tests
 "
