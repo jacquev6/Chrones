@@ -9,17 +9,17 @@ int64_t fibonacci(unsigned n) {
 }
 
 int main() {
-    chrone mainChrone("main_test.csv");
+    chrone firstChrone("firstChrone.csv");
     {
         int iterations = 100;
         volatile int64_t result = 0;
-        timer local_timer("Fibonacci34mean", &mainChrone, iterations);
+        timer globaltimer("Fibonacci34_meanoveriterations", &firstChrone, iterations);
         for (int i = 0; i < iterations; ++i){
             result = fibonacci(34);
         }
     }
 
-    chrone secondChrone("second_test.csv");
+    chrone secondChrone("secondChrone.csv");
     {
         int iterations = 100;
         volatile int64_t result = 0;
