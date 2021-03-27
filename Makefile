@@ -1,7 +1,7 @@
 ################### # Top-level rules # ###################
 
 # -- Inventory Section -- #
-EVAL_FILES   = main chrone
+EVAL_FILES   = usage-example chrone
 EVAL_CXXFILES = $(EVAL_FILES:=.cpp)
 EVAL_HXXFILES = chrone.hpp
 EVAL_OBJFILES = $(EVAL_FILES:=.o)
@@ -25,8 +25,8 @@ RELEASE_DIR = release/
 #DEPS = 
 # -- Compiler Section -- #
 CC = g++
-DEBUG_CXXFLAGS = -O0 -g -std=c++17 -Wall -Wextra -pedantic
-OPTIM_CXXFLAGS = -O3 -std=c++17
+DEBUG_CXXFLAGS = -O0 -g -std=c++11 -Wall -Wextra -pedantic
+OPTIM_CXXFLAGS = -O3 -std=c++11
 
 
 LDFLAGS_TESTS = -lgtest_main -lgtest -pthread -lm 
@@ -80,5 +80,6 @@ $(lintfiles):
 clean:
 	rm -f *.o
 	rm -f *.csv
+	rm -f TestChrone.*
 	rm -rf $(BUILD_DIR)
 
