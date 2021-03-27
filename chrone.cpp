@@ -9,9 +9,9 @@ chrone::chrone(std::string filename) {
 
 chrone::~chrone() {
     std::ofstream file(_filename);
-
+    file << "Label;Execution time in ns\n";
     for (auto& sample : _rack) {
-        file << sample.first << ";" << sample.second << "ns\n";
+        file << sample.first << ";" << sample.second << "\n";
     }
 }
 
