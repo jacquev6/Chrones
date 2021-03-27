@@ -1,7 +1,7 @@
-What is a chrone
-================
+What is a chrone ?
+==================
 
-Apart from an extraordinary literary object found in the masterpiece [La Horde du Contrevent][1], a chrone is a class that allows you to set up timers that measure the time between their creation and their destruction and save this information in a file (csv format).
+Apart from an extraordinary literary object found in the masterpiece La Horde du Contrevent[1], a chrone is a class that allows you to set up timers that measure the time between their creation and their destruction and save this information in a file (csv format).
 
 Usage
 =====
