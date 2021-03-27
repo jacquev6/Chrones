@@ -1,3 +1,6 @@
+// Copyright (c) 2021 - present Laurent CABARET
+// up to date version: https://github.com/LaurentCabaret/chrones
+
 #include "chrone.hpp"
 
 #include <cassert>
