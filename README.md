@@ -111,8 +111,8 @@ Developing Chrones itself
 =========================
 
 Dependencies:
-    - a reasonably recent version of Docker
-    - a reasonably recent version of Bash
+- a reasonably recent version of Docker
+- a reasonably recent version of Bash
 
 To run all tests:
 
