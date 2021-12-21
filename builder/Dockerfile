@@ -1,34 +1,34 @@
-FROM debian:10
+# Copyright 2020-2021 Laurent Cabaret
+# Copyright 2020-2021 Vincent Jacques
 
+FROM ubuntu:20.04
+
+# System packages
 RUN set -x \
  && apt-get update \
- && apt-get install --yes \
-      wget build-essential cmake \
+ && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+      cmake \
+      g++ \
+      make \
       python3-pip \
- && pip3 install cpplint \
- && rm -rf /var/lib/apt/lists/*
+      wget ca-certificates \
+      libboost-all-dev \
+ && apt-get clean
 
+# Google Test
 RUN set -x \
- && wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz \
- && tar xzf release-1.10.0.tar.gz \
- && cd googletest-release-1.10.0 \
+ && wget https://github.com/google/googletest/archive/release-1.11.0.tar.gz \
+ && tar xzf release-1.11.0.tar.gz \
+ && cd googletest-release-1.11.0 \
  && mkdir build \
  && cd build \
  && cmake .. \
  && make \
  && make install \
  && cd ../.. \
- && rm -r googletest-release-1.10.0 \
- && rm release-1.10.0.tar.gz \
- `# Customize Google Test to display more elements in STL containers when assertions fail` \
- && sed -i 's/const size_t kMaxCount = 32;/const size_t kMaxCount = 1024;/' /usr/local/include/gtest/gtest-printers.h
+ && rm -r googletest-release-1.11.0 \
+ && rm release-1.11.0.tar.gz
 
-RUN set -x \
- && wget https://github.com/lindenb/makefile2graph/archive/656a5a996e2aa70db8c9f0bb506003a24f3666cb.tar.gz \
- && tar xzf 656a5a996e2aa70db8c9f0bb506003a24f3666cb.tar.gz \
- && cd makefile2graph-656a5a996e2aa70db8c9f0bb506003a24f3666cb \
- && make \
- && make install \
- && cd .. \
- && rm -r makefile2graph-656a5a996e2aa70db8c9f0bb506003a24f3666cb \
- && rm 656a5a996e2aa70db8c9f0bb506003a24f3666cb.tar.gz
+# Python packages
+RUN pip3 install \
+      cpplint `# Static analysis tools`

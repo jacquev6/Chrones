@@ -1,85 +1,99 @@
-################### # Top-level rules # ###################
+# Copyright 2020-2021 Laurent Cabaret
+# Copyright 2020-2021 Vincent Jacques
 
-# -- Inventory Section -- #
-EVAL_FILES   = usage-example chrone
-EVAL_CXXFILES = $(EVAL_FILES:=.cpp)
-EVAL_HXXFILES = chrone.hpp
-EVAL_OBJFILES = $(EVAL_FILES:=.o)
+############################
+# Default top-level target #
+############################
 
-TEST_FILES   = chrone-tests chrone
-TEST_CXXFILES = $(TEST_FILES:=.cpp)
-TEST_OBJFILES = $(TEST_FILES:=.o)
+.PHONY: default
+default: lint test
 
-TIMING_FILES = chrone-timingtests chrone
-TIMING_CXXFILES = $(TIMING_FILES:=.cpp)
-TIMING_OBJFILES = $(TIMING_FILES:=.o)
+#############
+# Inventory #
+#############
 
-EVAL_PRODUCT = chrones-eval
-TEST_PRODUCT = chrones-tests
-TIMINGTEST_PRODUCT = chrones-timingtests
+# Source files
+c++_header_files := $(wildcard c++/*.hpp)
+c++_source_files := $(wildcard c++/*.cpp)
+c++_test_source_files := $(wildcard c++/*-tests.cpp)
 
-BUILD_DIR = build/
-DEBUG_DIR = debug/
-RELEASE_DIR = release/
+# Intermediate files
+object_files := $(patsubst %.cpp,build/%.o,$(c++_source_files))
 
-#DEPS = 
-# -- Compiler Section -- #
-CC = g++
-DEBUG_CXXFLAGS = -O0 -g -std=c++11 -Wall -Wextra -pedantic
-OPTIM_CXXFLAGS = -O3 -std=c++11
+# Sentinel files
+cpplint_sentinel_files := $(patsubst %,build/%.cpplint.ok,$(c++_header_files) $(c++_source_files))
+test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files))
 
+.PHONY: debug-inventory
+debug-inventory:
+	@echo "c++_header_files:\n$(c++_header_files)\n"
+	@echo "c++_source_files:\n$(c++_source_files)\n"
+	@echo "c++_test_source_files:\n$(c++_test_source_files)\n"
+	@echo "object_files:\n$(object_files)\n"
+	@echo "cpplint_sentinel_files:\n$(cpplint_sentinel_files)\n"
+	@echo "test_sentinel_files:\n$(test_sentinel_files)\n"
 
-LDFLAGS_TESTS = -lgtest_main -lgtest -pthread -lm 
-LDFLAGS = -lm 
-CXXRUNFLAGS = $(OPTIM_CXXFLAGS) $(LDFLAGS)
-CXXDEBUGFLAGS = $(DEBUG_CXXFLAGS) $(LDFLAGS)
-CXXTESTSFLAGS = $(OPTIM_CXXFLAGS) $(LDFLAGS_TESTS)
+###############################
+# Secondary top-level targets #
+###############################
 
+.PHONY: compile
+compile: $(object_files)
 
-all: test timing-test eval run
+#######################
+# Manual dependencies #
+#######################
 
-.PHONY: eval
-eval: $(EVAL_OBJFILES)	
-	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
-	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT) $^ $(CXXDEBUGFLAGS)
-	@echo "the executable is there" $(BUILD_DIR)$(DEBUG_DIR)$(EVAL_PRODUCT)
+# Not worth automating with `g++ -M`: too simple
 
-.PHONY: run
-run: $(EVAL_OBJFILES)	
-	@mkdir -p $(BUILD_DIR)$(RELEASE_DIR)
-	$(CC) -o $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT) $^ $(CXXRUNFLAGS)
-	@echo "the executable is there" $(BUILD_DIR)$(RELEASE_DIR)$(EVAL_PRODUCT)
+build/c++/chrones-tests: build/c++/chrones-tests.o build/c++/chrones.o
+build/c++/chrones-tests.o: c++/chrones.hpp
+build/c++/chrones.o: c++/chrones.hpp
 
-.PHONY: test
-test: $(TEST_OBJFILES)
-	@mkdir -p $(BUILD_DIR)$(DEBUG_DIR)
-	$(CC) -o $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT) $^ $(CXXTESTSFLAGS)
-	@echo "the test is there" $(BUILD_DIR)$(DEBUG_DIR)$(TEST_PRODUCT)
-
-.PHONY: timing-test
-timing-test: $(TIMING_CXXFILES)
-	@mkdir -p $(BUILD_DIR)$(RELEASE_DIR)
-	$(CC) -o $(BUILD_DIR)$(RELEASE_DIR)$(TIMINGTEST_PRODUCT) $^ $(CXXRUNFLAGS)
-	@echo "the test is there" $(BUILD_DIR)$(RELEASE_DIR)$(TIMINGTEST_PRODUCT)
-
-
-# -- Base rules ----------
-$(BUILD_DIR)%.o : %.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+########
+# Lint #
+########
 
 .PHONY: lint
-lintfiles= $(EVAL_CXXFILES) $(EVAL_HXXFILES)
+lint: $(cpplint_sentinel_files)
 
-lint: $(lintfiles)
-	@echo cpplint $<
-	@cpplint --linelength=120 --filter=-legal/copyright,-readability/fn_size $(lintfiles) # | (grep -v "^Done processing" || true) | tee build/$*.cpplint.log
+build/%.cpplint.ok: %
+	@echo "cpplint $<"
+	@mkdir -p $(dir $@)
+	@cpplint --root=cpp --linelength=120 $<
+	@touch $@
 
-$(lintfiles):
-	@cpplint --linelength=120 --filter=-legal/copyright,-readability/fn_size $@ -i # | (grep -v "^Done processing" || true) | tee build/$*.cpplint.log
+#########
+# Tests #
+#########
 
-clean:
-	rm -f *.o
-	rm -f *.csv
-	rm -f TestChrone.*
-	rm -rf $(BUILD_DIR)
+.PHONY: test
+test: $(test_sentinel_files)
 
+build/%-tests.cpp.tests.ok: build/%-tests
+	@echo "$<"
+	@mkdir -p $(dir $@)
+	@rm -f build/$*-tests.chrones.csv
+	@cd build/c++ && ../../$<
+	@./chrones-report.py summaries build/$*-tests.chrones.csv >build/$*-tests.chrones.summaries.json
+	@touch $@
+
+########
+# Link #
+########
+
+# Of test executables
+
+build/%-tests: build/%-tests.o
+	@echo "g++     $< -o $@"
+	@mkdir -p $(dir $@)
+	@g++ -g -fopenmp $^ -lgtest_main -lgtest -lboost_thread -o $@
+
+###############
+# Compilation #
+###############
+
+build/%.o: %.cpp
+	@echo "g++  -c $< -o $@"
+	@mkdir -p $(dir $@)
+	@g++ -std=gnu++17 -Wall -Wextra -Wpedantic -Werror -g -fopenmp -c $< -o $@

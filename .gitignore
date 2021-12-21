@@ -1,5 +1,2 @@
-build/
-.vscode/
-.vscode/*
-*.o
-TestChrone.*
+/build/
+/.vscode/
