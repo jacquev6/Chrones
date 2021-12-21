@@ -1,7 +1,7 @@
 What is a chrone ?
 ==================
 
-Apart from an extraordinary literary object found in the masterpiece [La Horde du Contrevent (french only)][https://lavolte.net/livres/la-horde-du-contrevent/], a chrone is a stopwatch to measure the execution duration of a piece of code.
+Apart from an extraordinary literary object found in the masterpiece [La Horde du Contrevent (french only)](https://lavolte.net/livres/la-horde-du-contrevent/), a chrone is a stopwatch to measure the execution duration of a piece of code.
 A set of tools are provided to produce human-readable reports.
 
 The ambition of Chrones is to accurately measure and report durations down to the millisecond.
@@ -22,6 +22,7 @@ Languages supported
 ===================
 
 C++: full support of mono-threaded programs
+
 Bash: full support of single-processed scripts
 
 The arguably simple format of the `.cvs` file makes it relatively easy to support another language:
@@ -38,6 +39,7 @@ Add `c++/chrones.hpp` and `c++/chrones.cpp` in your source tree, compile and lin
 In your main source file, add:
 
     #include "chrones.hpp"
+
     CHRONABLE("name_of_your_executable")
 
 The name above will be used as the base name of the `.csv` file.
