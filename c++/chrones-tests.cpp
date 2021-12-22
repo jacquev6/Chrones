@@ -12,8 +12,14 @@
 
 CHRONABLE("chrones-tests")
 
-void actual_file_g() {
-  CHRONE();
+namespace foo {
+
+struct Bar {
+  static void actual_file_g(int, float, std::pair<int, float>*) {
+    CHRONE();
+  }
+};
+
 }
 
 void actual_file_h() {
@@ -26,7 +32,7 @@ void actual_file_f() {
   #pragma omp parallel for
   for (int i = 0; i < 4; ++i) {
     CHRONE("loop a", i);
-    actual_file_g();
+    foo::Bar::actual_file_g(42, 57, nullptr);
   }
 
   #pragma omp parallel for

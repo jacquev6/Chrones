@@ -209,7 +209,7 @@ extern coordinator global_coordinator;
 #else
 // Variadic macro that forwards its arguments to the appropriate chrones::stopwatch constructor
 #define CHRONE(...) chrones::stopwatch chrone_stopwatch##__line__( \
-  &chrones::global_coordinator, __func__ \
+  &chrones::global_coordinator, chrones::quote_for_csv(__PRETTY_FUNCTION__) \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 #endif
 
