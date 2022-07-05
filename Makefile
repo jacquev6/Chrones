@@ -60,7 +60,7 @@ lint: $(cpplint_sentinel_files)
 build/%.cpplint.ok: %
 	@echo "cpplint $<"
 	@mkdir -p $(dir $@)
-	@cpplint --root=cpp --linelength=120 $<
+	@cpplint --root=cpp --linelength=120 --filter=-build/include_subdir $<
 	@touch $@
 
 #########

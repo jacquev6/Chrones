@@ -7,18 +7,20 @@ set -o errexit
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 
-# One can export variables CHRONES_SKIP_* before running this script to skip some parts.
-# Useful to spare some time on repeated runs.
-
-if [[ -z $CHRONES_SKIP_BUILDER ]]
+if ! diff -r builder build/builder >/dev/null 2>&1 || ! diff Makefile build/Makefile >/dev/null 2>&1
 then
-  docker build builder --tag chrones-builder
+  rm -rf build
+  mkdir build
+  docker build --tag chrones-builder builder
+  cp -r builder build
+  cp Makefile build
 fi
+
 
 docker run \
   --rm --interactive --tty \
   --user $(id -u):$(id -g) `# Avoid creating files as 'root'` \
   --network none `# Ensure the repository is self-contained (except for the "docker build" phase)` \
-  --volume "$PWD:/wd" --workdir /wd \
+  --volume "$PWD:/workdir" --workdir /workdir \
   chrones-builder \
     make "$@"
