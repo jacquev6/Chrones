@@ -337,7 +337,7 @@ class ExtractDurationsTestCase(unittest.TestCase):
             },
         )
 
-    def test_concurent(self):
+    def test_concurrent(self):
         self.assertEqual(
             self.extract([
                 StopwatchStart("p", "t_a", 1234, "f", None, None),
