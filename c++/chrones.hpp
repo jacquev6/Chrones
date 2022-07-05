@@ -1,5 +1,5 @@
-// Copyright 2020-2021 Laurent Cabaret
-// Copyright 2020-2021 Vincent Jacques
+// Copyright 2020-2022 Laurent Cabaret
+// Copyright 2020-2022 Vincent Jacques
 
 #ifndef CHRONES_HPP_
 #define CHRONES_HPP_

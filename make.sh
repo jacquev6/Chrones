@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copyright 2020-2021 Laurent Cabaret
-# Copyright 2020-2021 Vincent Jacques
+# Copyright 2020-2022 Laurent Cabaret
+# Copyright 2020-2022 Vincent Jacques
 
 set -o errexit
 
