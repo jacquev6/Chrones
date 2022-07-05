@@ -91,7 +91,7 @@ typedef chrones::coordinator_tmpl<MockInfo> coordinator;
 
 
 TEST(TestChrones, Basic) {
-  for (int i = 0; i != 5'000; ++i) {  // Repeat test to gain confidence about race conditions
+  for (int i = 0; i != 5000; ++i) {  // Repeat test to gain confidence about race conditions
     std::ostringstream oss;
     MockInfo::time = 652;
     MockInfo::process_id = 7;
