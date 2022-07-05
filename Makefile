@@ -48,6 +48,8 @@ compile: $(object_files)
 
 build/c++/chrones-tests.o: c++/chrones.hpp
 build/c++/chrones.o: c++/chrones.hpp
+build/c++/chrones-tests: build/c++/chrones.o
+build/c++/stream-statistics-tests.o: c++/stream-statistics.hpp
 
 ########
 # Lint #
@@ -83,7 +85,7 @@ build/%-tests.cpp.tests.ok: build/%-tests
 
 # Of test executables
 
-build/%-tests: build/%-tests.o build/%.o
+build/%-tests: build/%-tests.o
 	@echo "g++     $< -o $@"
 	@mkdir -p $(dir $@)
 	@g++ -g -fopenmp $^ -lgtest_main -lgtest -lboost_thread -o $@
@@ -95,4 +97,4 @@ build/%-tests: build/%-tests.o build/%.o
 build/%.o: %.cpp
 	@echo "g++  -c $< -o $@"
 	@mkdir -p $(dir $@)
-	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -g -fopenmp -c $< -o $@
+	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -g -O3 -fopenmp -c $< -o $@
