@@ -74,7 +74,7 @@ build/%-tests.cpp.tests.ok: build/%-tests
 	@mkdir -p $(dir $@)
 	@rm -f build/$*-tests.*.chrones.csv
 	@cd build/c++ && ../../$<
-	@./chrones-report.py summaries build/$*-tests.*.chrones.csv >build/$*-tests.chrones.summaries.json
+	@if [ "$*" = "c++/chrones" ]; then ./chrones-report.py summaries build/$*-tests.*.chrones.csv >build/$*-tests.chrones.summaries.json; fi
 	@touch $@
 
 ########
