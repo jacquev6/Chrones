@@ -73,9 +73,9 @@ test: $(test_sentinel_files)
 build/%-tests.cpp.tests.ok: build/%-tests
 	@echo "$<"
 	@mkdir -p $(dir $@)
-	@rm -f build/$*-tests.chrones.csv
+	@rm -f build/$*-tests.*.chrones.csv
 	@cd build/c++ && ../../$<
-	@./chrones-report.py summaries build/$*-tests.chrones.csv >build/$*-tests.chrones.summaries.json
+	@./chrones-report.py summaries build/$*-tests.*.chrones.csv >build/$*-tests.chrones.summaries.json
 	@touch $@
 
 ########

@@ -30,8 +30,11 @@
 // In your main file, use the CHRONABLE macro, giving it the base name of the
 // csv file you want:
 //     CHRONABLE("my-exec")
-// The code above will generate `my-exec.chrones.csv` in the working directory.
-// You can then use `chrones.py report my-exec.chrones.csv` to generate a report.
+// The code above will generate `my-exec.[PID].chrones.csv` in the working directory.
+// You can then use `chrones.py report my-exec.[PID].chrones.csv` to generate a report.
+// You can also `cat my-exec.*.chrones.csv > my-exec.chrones.csv` and then
+// `chrones.py report my-exec.chrones.csv` to generate a report about several
+// executions of `my-exec`.
 
 // Then in the functions you want to instrument, use the CHRONE macro.
 // This macro accepts optional `label` and `index` parameters, in that order.
@@ -200,7 +203,8 @@ extern coordinator global_coordinator;
 
 #define CHRONABLE(name) \
   namespace chrones { \
-    std::ofstream global_stream(name + std::string(".chrones.csv"), std::ios_base::app); \
+    std::ofstream global_stream( \
+      std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv", std::ios_base::app); \
     coordinator global_coordinator(global_stream); \
   }
 
