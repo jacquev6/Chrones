@@ -46,7 +46,6 @@ compile: $(object_files)
 
 # Not worth automating with `g++ -M`: too simple
 
-build/c++/chrones-tests: build/c++/chrones-tests.o build/c++/chrones.o
 build/c++/chrones-tests.o: c++/chrones.hpp
 build/c++/chrones.o: c++/chrones.hpp
 
@@ -84,7 +83,7 @@ build/%-tests.cpp.tests.ok: build/%-tests
 
 # Of test executables
 
-build/%-tests: build/%-tests.o
+build/%-tests: build/%-tests.o build/%.o
 	@echo "g++     $< -o $@"
 	@mkdir -p $(dir $@)
 	@g++ -g -fopenmp $^ -lgtest_main -lgtest -lboost_thread -o $@
