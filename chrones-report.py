@@ -174,6 +174,7 @@ def make_multi_process_summaries(events):
             key[1],
             len(durations),
             statistics.mean(durations),
+            statistics.stdev(durations) if len(durations) > 1 else 0,
             min(durations),
             statistics.median(durations),
             max(durations),
@@ -188,6 +189,7 @@ class Summary:
     label: Optional[str]
     executions_count: int
     average_duration: int
+    duration_standard_deviation: int
     min_duration: int
     median_duration: int
     max_duration: int
@@ -201,6 +203,7 @@ class Summary:
         d["executions_count"] = self.executions_count
         if self.executions_count > 1:
             d["average_duration_ms"] = to_ms(self.average_duration)
+            d["duration_standard_deviation_ms"] = to_ms(self.duration_standard_deviation)
             d["min_duration_ms"] = to_ms(self.min_duration)
             d["median_duration_ms"] = to_ms(self.median_duration)
             d["max_duration_ms"] = to_ms(self.max_duration)
