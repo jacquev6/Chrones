@@ -46,8 +46,8 @@ compile: $(object_files)
 
 # Not worth automating with `g++ -M`: too simple
 
-build/c++/chrones-tests.o: c++/chrones.hpp
-build/c++/chrones.o: c++/chrones.hpp
+build/c++/chrones-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
+build/c++/chrones.o: c++/chrones.hpp c++/stream-statistics.hpp
 build/c++/chrones-tests: build/c++/chrones.o
 build/c++/stream-statistics-tests.o: c++/stream-statistics.hpp
 build/c++/chrones-tests.cpp.tests.ok: chrones-report.py c++/chrones-tests.py

@@ -31,7 +31,44 @@ coordinator_base::coordinator_base(std::ostream& stream) :
     _done(false),
     _worker(&coordinator_base::work, this) {}
 
+void coordinator_base::accumulate(
+  int process_id,
+  std::size_t thread_id,
+  const std::string& function,
+  const boost::optional<std::string>& label,
+  const int64_t duration
+) {
+  boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+  _statistics[std::make_tuple(process_id, thread_id, function, label)].update(duration);
+}
+
 coordinator_base::~coordinator_base() {
+  {
+    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    for (const auto& stat : _statistics) {
+      int process_id;
+      std::size_t thread_id;
+      std::string function;
+      boost::optional<std::string> label;
+      std::tie(process_id, thread_id, function, label) = stat.first;
+      add_event({
+        process_id,
+        thread_id,
+        0,  // @todo Set timestamp
+        {
+          "sw_summary",
+          function,
+          label == boost::none ? "-" : quote_for_csv(*label),
+          std::to_string(stat.second.count()),
+          std::to_string(static_cast<int64_t>(stat.second.mean())),
+          std::to_string(static_cast<int64_t>(stat.second.standard_deviation())),
+          std::to_string(static_cast<int64_t>(stat.second.min())),
+          std::to_string(static_cast<int64_t>(stat.second.median())),
+          std::to_string(static_cast<int64_t>(stat.second.max())),
+          std::to_string(static_cast<int64_t>(stat.second.sum())),
+        }});
+    }
+  }
   _done = true;
   _worker.join();
 }

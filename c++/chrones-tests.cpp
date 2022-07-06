@@ -90,7 +90,7 @@ typedef chrones::stopwatch_tmpl<MockInfo> stopwatch;
 typedef chrones::coordinator_tmpl<MockInfo> coordinator;
 
 
-TEST(ChronesTest, Basic) {
+TEST(ChronesTest, BasicOnce) {
   for (int i = 0; i != 5000; ++i) {  // Repeat test to gain confidence about race conditions
     std::ostringstream oss;
     MockInfo::time = 652;
@@ -99,44 +99,82 @@ TEST(ChronesTest, Basic) {
 
     {
       coordinator c(oss);
-      stopwatch t(&c, "f");
-      MockInfo::time = 789;
+      {
+        stopwatch t(&c, "f");
+        MockInfo::time = 694;
+      }
+      MockInfo::time = 710;
     }
 
-    ASSERT_EQ(oss.str(), "7,12,652,sw_start,f,-,-\n7,12,789,sw_stop\n");
+    ASSERT_EQ(
+      oss.str(),
+      "7,12,652,sw_start,f,-,-\n"
+      "7,12,694,sw_stop\n"
+      "7,12,0,sw_summary,f,-,1,42,0,42,42,42,42\n");  // @todo Set timestamp to 710
   }
+}
+
+TEST(ChronesTest, BasicFewTimes) {
+    std::ostringstream oss;
+    MockInfo::time = 122;
+    MockInfo::process_id = 8;
+    MockInfo::thread_id = 1;
+
+    {
+      coordinator c(oss);
+      for (int i = 1; i != 4; ++i) {
+        MockInfo::time += i * 4;
+        stopwatch t(&c, "f", boost::none, i);
+        MockInfo::time += i * 3;
+      }
+      MockInfo::time = 200;
+    }
+
+    ASSERT_EQ(
+      oss.str(),
+      "8,1,126,sw_start,f,-,1\n"
+      "8,1,129,sw_stop\n"
+      "8,1,137,sw_start,f,-,2\n"
+      "8,1,143,sw_stop\n"
+      "8,1,155,sw_start,f,-,3\n"
+      "8,1,164,sw_stop\n"
+      "8,1,0,sw_summary,f,-,3,6,2,3,6,9,18\n");
 }
 
 TEST(ChronesTest, LabelWithQuotes) {
   std::ostringstream oss;
-  MockInfo::time = 1222;
-  MockInfo::process_id = 5;
-  MockInfo::thread_id = 57;
+  MockInfo::time = 0;
+  MockInfo::process_id = 0;
+  MockInfo::thread_id = 0;
 
   {
     coordinator c(oss);
     stopwatch t(&c, "f", "a 'label' with \"quotes\"");
-    MockInfo::time = 1712;
   }
 
   ASSERT_EQ(
     oss.str(),
-    "5,57,1222,sw_start,f,\"a 'label' with \"\"quotes\"\"\",-\n5,57,1712,sw_stop\n");
+    "0,0,0,sw_start,f,\"a 'label' with \"\"quotes\"\"\",-\n"
+    "0,0,0,sw_stop\n"
+    "0,0,0,sw_summary,f,\"a 'label' with \"\"quotes\"\"\",1,0,0,0,0,0,0\n");
 }
 
 TEST(ChronesTest, Index) {
   std::ostringstream oss;
-  MockInfo::time = 788;
-  MockInfo::process_id = 6;
-  MockInfo::thread_id = 63;
+  MockInfo::time = 0;
+  MockInfo::process_id = 0;
+  MockInfo::thread_id = 0;
 
   {
     coordinator c(oss);
     stopwatch t(&c, "f", "label", 42);
-    MockInfo::time = 912;
   }
 
-  ASSERT_EQ(oss.str(), "6,63,788,sw_start,f,\"label\",42\n6,63,912,sw_stop\n");
+  ASSERT_EQ(
+    oss.str(),
+    "0,0,0,sw_start,f,\"label\",42\n"
+    "0,0,0,sw_stop\n"
+    "0,0,0,sw_summary,f,\"label\",1,0,0,0,0,0,0\n");
 }
 
 #endif  // NO_CHRONES

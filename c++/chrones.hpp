@@ -11,17 +11,21 @@
 
 #else
 
-#include <string>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <thread>  // NOLINT(build/c++11)
-#include <chrono>  // NOLINT(build/c++11)
 #include <atomic>
+#include <chrono>  // NOLINT(build/c++11)
+#include <fstream>
+#include <map>
+#include <sstream>
+#include <string>
+#include <thread>  // NOLINT(build/c++11)
+#include <tuple>
+#include <vector>
 
 #include <boost/thread.hpp>
 #include <boost/optional.hpp>
 #include <boost/lockfree/queue.hpp>
+
+#include "stream-statistics.hpp"
 
 
 // The Chrones library instruments your code to measure the time taken by each function.
@@ -97,7 +101,14 @@ class coordinator_base {
   explicit coordinator_base(std::ostream& stream);
   ~coordinator_base();
 
+ protected:
   void add_event(const event& event);
+  void accumulate(
+    int process_id,
+    std::size_t thread_id,
+    const std::string& function,
+    const boost::optional<std::string>& label,
+    const int64_t duration);
 
  private:
   void work();
@@ -106,8 +117,13 @@ class coordinator_base {
   boost::lockfree::queue<const event*> _events;
   std::ostream& _stream;
   std::atomic_bool _done;
+  std::map<
+    std::tuple<int, std::size_t, std::string, boost::optional<std::string>>,
+    StreamStatistics
+  > _statistics;
   // Using boost::thread instead of std::thread to avoid this segmentation fault:
   // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
+  boost::mutex _statistics_mutex;
   boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 
@@ -117,15 +133,16 @@ class coordinator_tmpl : public coordinator_base {
   using coordinator_base::coordinator_base;
 
   // @todo Add logs of level TRACE
-  void start_stopwatch(
+  int64_t start_stopwatch(
     const std::string& function,
     const boost::optional<std::string>& label,
     const boost::optional<int> index
   ) {
+    const int64_t start_time = Info::get_time();
     add_event(event {
       Info::get_process_id(),
       Info::get_thread_id(),
-      Info::get_time(),
+      start_time,
       {
         "sw_start",
         function,
@@ -133,17 +150,19 @@ class coordinator_tmpl : public coordinator_base {
         index == boost::none ? "-" : std::to_string(*index),
       }
     });
+    return start_time;
   }
 
-  void stop_stopwatch() {
-    add_event(event {
-      Info::get_process_id(),
-      Info::get_thread_id(),
-      Info::get_time(),
-      {
-        "sw_stop",
-      }
-    });
+  void stop_stopwatch(
+    const std::string& function,
+    const boost::optional<std::string>& label,
+    int64_t start_time
+  ) {
+    const int64_t stop_time = Info::get_time();
+    const int process_id = Info::get_process_id();
+    const std::size_t thread_id = Info::get_thread_id();
+    add_event({ process_id, thread_id, stop_time, { "sw_stop" }});
+    accumulate(process_id, thread_id, function, label, stop_time - start_time);
   }
 };
 
@@ -159,15 +178,18 @@ class stopwatch_tmpl {
   {};
 
   stopwatch_tmpl(
-    coordinator_tmpl<Info>* coordinator,
-    const std::string& function,
-    const boost::optional<std::string>& label = boost::none,
-    const boost::optional<int> index = boost::none) : _coordinator(coordinator) {
-    coordinator->start_stopwatch(function, label, index);
-  }
+      coordinator_tmpl<Info>* coordinator,
+      const std::string& function,
+      const boost::optional<std::string>& label = boost::none,
+      const boost::optional<int> index = boost::none) :
+    _coordinator(coordinator),
+    _function(function),
+    _label(label),
+    _start_time(coordinator->start_stopwatch(function, label, index))
+  {}
 
   ~stopwatch_tmpl() {
-    _coordinator->stop_stopwatch();
+    _coordinator->stop_stopwatch(_function, _label, _start_time);
   }
 
  private:
@@ -176,6 +198,9 @@ class stopwatch_tmpl {
   stopwatch_tmpl& operator=(const stopwatch_tmpl&) = delete;
 
   coordinator_tmpl<Info>* _coordinator;
+  const std::string _function;
+  const boost::optional<std::string> _label;
+  int64_t _start_time;
 };
 
 struct RealInfo {
