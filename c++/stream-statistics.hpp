@@ -72,7 +72,8 @@ class StreamStatistics {
   double _sum;
   double _m2n;
 
-  // Temporary, for median, until we implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
+  // Temporary, for median, until we
+  // @todo implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
   mutable std::vector<float> _samples;
 };
 
