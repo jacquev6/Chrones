@@ -110,7 +110,7 @@ TEST(ChronesTest, BasicOnce) {
       oss.str(),
       "7,12,652,sw_start,f,-,-\n"
       "7,12,694,sw_stop\n"
-      "7,12,0,sw_summary,f,-,1,42,0,42,42,42,42\n");  // @todo Set timestamp to 710
+      "7,12,710,sw_summary,f,-,1,42,0,42,42,42,42\n");
   }
 }
 
@@ -138,7 +138,7 @@ TEST(ChronesTest, BasicFewTimes) {
       "8,1,143,sw_stop\n"
       "8,1,155,sw_start,f,-,3\n"
       "8,1,164,sw_stop\n"
-      "8,1,0,sw_summary,f,-,3,6,2,3,6,9,18\n");
+      "8,1,200,sw_summary,f,-,3,6,2,3,6,9,18\n");
 }
 
 TEST(ChronesTest, LabelWithQuotes) {

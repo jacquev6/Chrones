@@ -96,42 +96,22 @@ struct event {
   std::vector<std::string> attributes;
 };
 
-class coordinator_base {
- public:
-  explicit coordinator_base(std::ostream& stream);
-  ~coordinator_base();
-
- protected:
-  void add_event(const event& event);
-  void accumulate(
-    int process_id,
-    std::size_t thread_id,
-    const std::string& function,
-    const boost::optional<std::string>& label,
-    const int64_t duration);
-
- private:
-  void work();
-
- private:
-  boost::lockfree::queue<const event*> _events;
-  std::ostream& _stream;
-  std::atomic_bool _done;
-  std::map<
-    std::tuple<int, std::size_t, std::string, boost::optional<std::string>>,
-    StreamStatistics
-  > _statistics;
-  // Using boost::thread instead of std::thread to avoid this segmentation fault:
-  // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
-  boost::mutex _statistics_mutex;
-  boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
-};
-
 template<typename Info>
-class coordinator_tmpl : public coordinator_base {
+class coordinator_tmpl {
  public:
-  using coordinator_base::coordinator_base;
+  explicit coordinator_tmpl(std::ostream& stream) :
+    _events(1024),  // Arbitrary initial capacity that can grow anyway
+    _stream(stream),
+    _done(false),
+    _worker(&coordinator_tmpl<Info>::work, this) {}
 
+  ~coordinator_tmpl() {
+    add_summary_events();
+    _done = true;
+    _worker.join();
+  }
+
+ public:
   // @todo Add logs of level TRACE
   int64_t start_stopwatch(
     const std::string& function,
@@ -164,6 +144,85 @@ class coordinator_tmpl : public coordinator_base {
     add_event({ process_id, thread_id, stop_time, { "sw_stop" }});
     accumulate(process_id, thread_id, function, label, stop_time - start_time);
   }
+
+ private:
+  void add_summary_events() {
+    const int64_t stop_time = Info::get_time();
+    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    for (const auto& stat : _statistics) {
+      int process_id;
+      std::size_t thread_id;
+      std::string function;
+      boost::optional<std::string> label;
+      std::tie(process_id, thread_id, function, label) = stat.first;
+      add_event({
+        process_id,
+        thread_id,
+        stop_time,
+        {
+          "sw_summary",
+          function,
+          label == boost::none ? "-" : quote_for_csv(*label),
+          std::to_string(stat.second.count()),
+          std::to_string(static_cast<int64_t>(stat.second.mean())),
+          std::to_string(static_cast<int64_t>(stat.second.standard_deviation())),
+          std::to_string(static_cast<int64_t>(stat.second.min())),
+          std::to_string(static_cast<int64_t>(stat.second.median())),
+          std::to_string(static_cast<int64_t>(stat.second.max())),
+          std::to_string(static_cast<int64_t>(stat.second.sum())),
+        }});
+    }
+  }
+
+  void add_event(const event& e) {
+    _events.push(new event(e));
+  }
+
+  void accumulate(
+      int process_id,
+      std::size_t thread_id,
+      const std::string& function,
+      const boost::optional<std::string>& label,
+      const int64_t duration) {
+    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    _statistics[std::make_tuple(process_id, thread_id, function, label)].update(duration);
+  }
+
+  void work() {
+    // There is no blocking `pop` on a boost::lockfree::queue because it would defeat its very purpose.
+    // But we only care about `push` being lock-free, so we emulate a blocking `pop` with
+    // this "poll, sleep" loop.
+    while (true) {
+      _events.consume_all([this](const event* event) {
+        _stream << event->process_id << ',' << event->thread_id << ',' << event->time;
+        for (auto& attribute : event->attributes) {
+          _stream << ',' << attribute;
+        }
+        _stream  << '\n';  // No std::endl: don't flush each line, improve performance
+        delete event;
+      });
+
+      if (_done) {
+        break;
+      } else {
+        // Avoid using 100% CPU
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    }
+  }
+
+ private:
+  boost::lockfree::queue<const event*> _events;
+  std::ostream& _stream;
+  std::atomic_bool _done;
+  std::map<
+    std::tuple<int, std::size_t, std::string, boost::optional<std::string>>,
+    StreamStatistics
+  > _statistics;
+  // Using boost::thread instead of std::thread to avoid this segmentation fault:
+  // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
+  boost::mutex _statistics_mutex;
+  boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 
 template<typename Info>
