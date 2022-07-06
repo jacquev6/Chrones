@@ -43,6 +43,8 @@ class StreamStatistics {
   }
 
  public:
+  uint64_t count() const { return _count; }
+
   float mean() const { return _sum / _count; }
 
   float variance() const { return _m2n / _count; }

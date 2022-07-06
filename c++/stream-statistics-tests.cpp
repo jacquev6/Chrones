@@ -23,6 +23,7 @@ TEST(StreamStatisticsTest, MinOnPositiveElement) {
 TEST(StreamStatisticsTest, AllMetricsOnZeroElements) {
   StreamStatistics stats;
 
+  EXPECT_EQ(stats.count(), 0);
   EXPECT_TRUE(std::isnan(stats.mean()));
   EXPECT_TRUE(std::isnan(stats.variance()));
   EXPECT_TRUE(std::isnan(stats.standard_deviation()));
@@ -35,6 +36,7 @@ TEST(StreamStatisticsTest, AllMetricsOnOneElements) {
   StreamStatistics stats;
   stats.update(2);
 
+  EXPECT_EQ(stats.count(), 1);
   EXPECT_EQ(stats.mean(), 2);
   EXPECT_EQ(stats.variance(), 0);
   EXPECT_EQ(stats.standard_deviation(), 0);
@@ -49,6 +51,7 @@ TEST(StreamStatisticsTest, AllMetricsOnTwoElements) {
     stats.update(x);
   }
 
+  EXPECT_EQ(stats.count(), 2);
   EXPECT_EQ(stats.mean(), 3);
   EXPECT_EQ(stats.variance(), 1);
   EXPECT_EQ(stats.standard_deviation(), 1);
@@ -63,6 +66,7 @@ TEST(StreamStatisticsTest, AllMetricsOnThreeElements) {
     stats.update(x);
   }
 
+  EXPECT_EQ(stats.count(), 3);
   EXPECT_EQ(stats.mean(), 3);
   EXPECT_FLOAT_EQ(stats.variance(), 0.66666669);
   EXPECT_FLOAT_EQ(stats.standard_deviation(), 0.81649661);
@@ -77,6 +81,7 @@ TEST(StreamStatisticsTest, AllMetricsOnFourElements) {
     stats.update(x);
   }
 
+  EXPECT_EQ(stats.count(), 4);
   EXPECT_EQ(stats.mean(), 2.5);
   EXPECT_EQ(stats.variance(), 1.25);
   EXPECT_FLOAT_EQ(stats.standard_deviation(), 1.118034);
@@ -91,6 +96,7 @@ TEST(StreamStatisticsTest, AllMetricsOnFiveElements) {
     stats.update(x);
   }
 
+  EXPECT_EQ(stats.count(), 5);
   EXPECT_EQ(stats.mean(), 2);
   EXPECT_EQ(stats.variance(), 2);
   EXPECT_FLOAT_EQ(stats.standard_deviation(), 1.4142135);
