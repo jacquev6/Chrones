@@ -65,6 +65,8 @@ class StreamStatistics {
 
   float max() const { return _max; }
 
+  float sum() const { return _sum; }
+
  private:
   uint64_t _count;
   float _min;

@@ -30,6 +30,7 @@ TEST(StreamStatisticsTest, AllMetricsOnZeroElements) {
   EXPECT_EQ(stats.min(), std::numeric_limits<float>::max());
   EXPECT_TRUE(std::isnan(stats.median()));
   EXPECT_EQ(stats.max(), -std::numeric_limits<float>::max());
+  EXPECT_EQ(stats.sum(), 0);
 }
 
 TEST(StreamStatisticsTest, AllMetricsOnOneElements) {
@@ -43,6 +44,7 @@ TEST(StreamStatisticsTest, AllMetricsOnOneElements) {
   EXPECT_EQ(stats.min(), 2);
   EXPECT_EQ(stats.median(), 2);
   EXPECT_EQ(stats.max(), 2);
+  EXPECT_EQ(stats.sum(), 2);
 }
 
 TEST(StreamStatisticsTest, AllMetricsOnTwoElements) {
@@ -58,6 +60,7 @@ TEST(StreamStatisticsTest, AllMetricsOnTwoElements) {
   EXPECT_EQ(stats.min(), 2);
   EXPECT_EQ(stats.median(), 4);
   EXPECT_EQ(stats.max(), 4);
+  EXPECT_EQ(stats.sum(), 6);
 }
 
 TEST(StreamStatisticsTest, AllMetricsOnThreeElements) {
@@ -73,6 +76,7 @@ TEST(StreamStatisticsTest, AllMetricsOnThreeElements) {
   EXPECT_EQ(stats.min(), 2);
   EXPECT_EQ(stats.median(), 3);
   EXPECT_EQ(stats.max(), 4);
+  EXPECT_EQ(stats.sum(), 9);
 }
 
 TEST(StreamStatisticsTest, AllMetricsOnFourElements) {
@@ -88,6 +92,7 @@ TEST(StreamStatisticsTest, AllMetricsOnFourElements) {
   EXPECT_EQ(stats.min(), 1);
   EXPECT_EQ(stats.median(), 3);
   EXPECT_EQ(stats.max(), 4);
+  EXPECT_EQ(stats.sum(), 10);
 }
 
 TEST(StreamStatisticsTest, AllMetricsOnFiveElements) {
@@ -103,6 +108,7 @@ TEST(StreamStatisticsTest, AllMetricsOnFiveElements) {
   EXPECT_EQ(stats.min(), 0);
   EXPECT_EQ(stats.median(), 2);
   EXPECT_EQ(stats.max(), 4);
+  EXPECT_EQ(stats.sum(), 10);
 }
 
 const unsigned large = 17000000;
