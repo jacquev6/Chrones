@@ -15,8 +15,10 @@ def main(summaries):
         ('virtual void ChronesTest_ActualFile_Test::TestBody()', 'intermediate, "xxxxxx"', 1),
         ('void actual_file_f()', 'loop a', 6),
         ('static void foo::Bar::actual_file_g(int, float, std::pair<int, float>*)', None, 6),
+        ('static void foo::Bar::actual_file_g(int, float, std::pair<int, float>*)', "mini", 6),
         ('void actual_file_f()', 'loop b', 8),
         ('void actual_file_h()', None, 8),
+        ('void actual_file_h()', "mini", 8),
     ]
 
     assert len(summaries) == len(expected), (summaries, expected)

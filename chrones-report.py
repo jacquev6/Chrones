@@ -85,6 +85,30 @@ def make_event(line):
         return StopwatchStart(process_id, thread_id, timestamp, function_name, label, index)
     elif line[3] == "sw_stop":
         return StopwatchStop(process_id, thread_id, timestamp)
+    elif line[3] == "sw_summary":
+        function_name = line[4]
+        label = None if line[5] == "-" else line[5]
+        executions_count = int(line[6])
+        average_duration = int(line[7])
+        duration_standard_deviation = int(line[8])
+        min_duration = int(line[9])
+        median_duration = int(line[10])
+        max_duration = int(line[11])
+        total_duration = int(line[12])
+        return StopwatchSummary(
+            process_id,
+            thread_id,
+            timestamp,
+            function_name,
+            label,
+            executions_count,
+            average_duration,
+            duration_standard_deviation,
+            min_duration,
+            median_duration,
+            max_duration,
+            total_duration,
+        )
     else:
         return None
 
@@ -106,6 +130,20 @@ class StopwatchStart(Event):
 @dataclasses.dataclass
 class StopwatchStop(Event):
     pass
+
+
+# Very similar to 'class Summary' a few lines below, but conceptually different, so no factorization
+@dataclasses.dataclass
+class StopwatchSummary(Event):
+    function_name: str
+    label: Optional[str]
+    executions_count: int
+    average_duration: int
+    duration_standard_deviation: int
+    min_duration: int
+    median_duration: int
+    max_duration: int
+    total_duration: int
 
 
 class MakeEventTestCase(unittest.TestCase):
@@ -158,17 +196,55 @@ class MakeEventTestCase(unittest.TestCase):
             ),
         )
 
+    def test_stopwatch_summary_no_label(self):
+        self.assertEqual(
+            make_event(["process_id", "thread_id", "375", "sw_summary", "function_name", "label", 10, 9, 8, 7, 6, 5, 4]),
+            StopwatchSummary(
+                process_id="process_id",
+                thread_id="thread_id",
+                timestamp=375,
+                function_name="function_name",
+                label="label",
+                executions_count=10,
+                average_duration=9,
+                duration_standard_deviation=8,
+                min_duration=7,
+                median_duration=6,
+                max_duration=5,
+                total_duration=4,
+            )
+        )
+
+    def test_stopwatch_summary_no_label(self):
+        self.assertEqual(
+            make_event(["process_id", "thread_id", "375", "sw_summary", "function_name", "-", 10, 9, 8, 7, 6, 5, 4]),
+            StopwatchSummary(
+                process_id="process_id",
+                thread_id="thread_id",
+                timestamp=375,
+                function_name="function_name",
+                label=None,
+                executions_count=10,
+                average_duration=9,
+                duration_standard_deviation=8,
+                min_duration=7,
+                median_duration=6,
+                max_duration=5,
+                total_duration=4,
+            )
+        )
+
 
 def make_multi_process_summaries(events):
-    all_durations = functools.reduce(
-        merge_durations,
+    (all_durations, all_summaries) = functools.reduce(
+        merge_durations_and_summaries,
         (
             extract_multi_threaded_durations(process_events)
             for _, process_events in itertools.groupby(events, key=lambda e: e.process_id)
         ),
     )
+    yield from all_summaries
     for (key, durations) in all_durations.items():
-        # durations = sorted(durations)
         yield Summary(
             key[0],
             key[1],
@@ -185,7 +261,7 @@ def make_multi_process_summaries(events):
 
 @dataclasses.dataclass
 class Summary:
-    function: str
+    function_name: str
     label: Optional[str]
     executions_count: int
     average_duration: int
@@ -197,7 +273,7 @@ class Summary:
 
     def json(self):
         d = collections.OrderedDict()
-        d["function"] = self.function
+        d["function"] = self.function_name
         if self.label is not None:
             d["label"] = self.label
         d["executions_count"] = self.executions_count
@@ -215,12 +291,18 @@ def to_ms(duration_ns):
     return (duration_ns // 10_000) / 100  # ms with 2 decimals
 
 
-def merge_durations(a, b):
-    merged = dict(a)
-    for (key, b_durations) in b.items():
-        merged_durations = merged.setdefault(key, [])
+def merge_durations_and_summaries(a, b):
+    (durations_a, summaries_a) = a
+    (durations_b, summaries_b) = b
+
+    durations_merged = dict(durations_a)
+    for (key, b_durations) in durations_b.items():
+        merged_durations = durations_merged.setdefault(key, [])
         merged_durations += b_durations
-    return merged
+
+    summaries_merged = summaries_a + summaries_b
+
+    return (durations_merged, summaries_merged)
 
 
 def extract_multi_threaded_durations(events):
@@ -242,17 +324,18 @@ class MultiThreadedDurationsExtractor:
     def result(self):
         if self.__extractors_per_thread:
             return functools.reduce(
-                merge_durations,
+                merge_durations_and_summaries,
                 (extractor.result for extractor in self.__extractors_per_thread.values()),
             )
         else:
-            return {}
+            return [{}, []]
 
 
 class SingleThreadedDurationsExtractor:
     def __init__(self):
         self.__stack = []
         self.__durations = {}
+        self.__summaries = []
 
     def process(self, event):
         if event.__class__ == StopwatchStart:
@@ -263,46 +346,77 @@ class SingleThreadedDurationsExtractor:
             assert duration >= 0
             durations = self.__durations.setdefault((start_event.function_name, start_event.label), [])
             durations.append(duration)
+        elif event.__class__ == StopwatchSummary:
+            self.__summaries.append(Summary(
+                function_name=event.function_name,
+                label=event.label,
+                executions_count=event.executions_count,
+                average_duration=event.average_duration,
+                duration_standard_deviation=event.duration_standard_deviation,
+                min_duration=event.min_duration,
+                median_duration=event.median_duration,
+                max_duration=event.max_duration,
+                total_duration=event.total_duration,
+            ))
         else:
             assert False
 
     @property
     def result(self):
         assert len(self.__stack) == 0
-        return self.__durations
+        return (self.__durations, self.__summaries)
 
 
 class ExtractDurationsTestCase(unittest.TestCase):
-    def extract(self, events):
+    def extract_durations(self, events):
         extractor = MultiThreadedDurationsExtractor()
         for event in events:
             extractor.process(event)
-        return extractor.result
+        return extractor.result[0]
+
+    def extract_summaries(self, events):
+        extractor = MultiThreadedDurationsExtractor()
+        for event in events:
+            extractor.process(event)
+        return extractor.result[1]
 
     def test_empty(self):
-        self.assertEqual(self.extract([]), {})
+        self.assertEqual(self.extract_durations([]), {})
+        self.assertEqual(self.extract_summaries([]), [])
 
-    def test_single(self):
+    def test_summaries(self):
         self.assertEqual(
-            self.extract([
+            self.extract_summaries([
+                StopwatchSummary("p", "t", 42, "f", None, 12, 11, 10, 9, 8, 7, 6),
+                StopwatchSummary("p", "t", 42, "f", "label", 412, 411, 410, 49, 48, 47, 46),
+            ]),
+            [
+                Summary("f", None, 12, 11, 10, 9, 8, 7, 6),
+                Summary("f", "label", 412, 411, 410, 49, 48, 47, 46),
+            ],
+        )
+
+    def test_single_duration(self):
+        self.assertEqual(
+            self.extract_durations([
                 StopwatchStart("p", "t", 1234, "f", None, None),
                 StopwatchStop("p", "t", 1534),
             ]),
             {("f", None): [300]},
         )
 
-    def test_label(self):
+    def test_duration_with_label(self):
         self.assertEqual(
-            self.extract([
+            self.extract_durations([
                 StopwatchStart("p", "t", 1184, "f", "label", None),
                 StopwatchStop("p", "t", 1534),
             ]),
             {("f", "label"): [350]},
         )
 
-    def test_loop(self):
+    def test_durations_loop(self):
         self.assertEqual(
-            self.extract([
+            self.extract_durations([
                 StopwatchStart("p", "t", 100, "f", "label", 1),
                 StopwatchStop("p", "t", 200),
                 StopwatchStart("p", "t", 250, "f", "label", 2),
@@ -313,9 +427,9 @@ class ExtractDurationsTestCase(unittest.TestCase):
             {("f", "label"): [100, 50, 150]},
         )
 
-    def test_nested(self):
+    def test_nested_durations(self):
         self.assertEqual(
-            self.extract([
+            self.extract_durations([
                 StopwatchStart("p", "t", 1234, "f", None, None),
                 StopwatchStart("p", "t", 1334, "g", None, None),
                 StopwatchStop("p", "t", 1434),
@@ -327,9 +441,9 @@ class ExtractDurationsTestCase(unittest.TestCase):
             },
         )
 
-    def test_multi_thread(self):
+    def test_multi_thread_durations(self):
         self.assertEqual(
-            self.extract([
+            self.extract_durations([
                 StopwatchStart("p", "t_a", 1234, "f", None, None),
                 StopwatchStart("p", "t_b", 1334, "g", None, None),
                 StopwatchStop("p", "t_a", 1434),
@@ -341,9 +455,9 @@ class ExtractDurationsTestCase(unittest.TestCase):
             },
         )
 
-    def test_concurrent(self):
+    def test_concurrent_durations(self):
         self.assertEqual(
-            self.extract([
+            self.extract_durations([
                 StopwatchStart("p", "t_a", 1234, "f", None, None),
                 StopwatchStart("p", "t_b", 1334, "f", None, None),
                 StopwatchStop("p", "t_a", 1434),

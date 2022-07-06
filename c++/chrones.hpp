@@ -10,6 +10,8 @@
 
 #define CHRONE(...) do {} while (false)
 
+#define MINICHRONE(...) do {} while (false)
+
 #else
 
 #include <atomic>
@@ -114,7 +116,7 @@ class coordinator_tmpl {
 
  public:
   // @todo Add logs of level TRACE
-  int64_t start_stopwatch(
+  int64_t start_heavy_stopwatch(
     const std::string& function,
     const boost::optional<std::string>& label,
     const boost::optional<int> index
@@ -134,28 +136,34 @@ class coordinator_tmpl {
     return start_time;
   }
 
-  void stop_stopwatch(
+  void stop_heavy_stopwatch() {
+    const int64_t stop_time = Info::get_time();
+    add_event({ Info::get_process_id(), Info::get_thread_id(), stop_time, { "sw_stop" }});
+  }
+
+  int64_t start_light_stopwatch() {
+    return Info::get_time();
+  }
+
+  void stop_light_stopwatch(
     const std::string& function,
     const boost::optional<std::string>& label,
     int64_t start_time
   ) {
     const int64_t stop_time = Info::get_time();
-    const int process_id = Info::get_process_id();
-    const std::size_t thread_id = Info::get_thread_id();
-    add_event({ process_id, thread_id, stop_time, { "sw_stop" }});
-    accumulate(process_id, thread_id, function, label, stop_time - start_time);
+    accumulate(function, label, stop_time - start_time);
   }
 
  private:
   void add_summary_events() {
+    const int process_id = Info::get_process_id();
+    const std::size_t thread_id = Info::get_thread_id();
     const int64_t stop_time = Info::get_time();
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
     for (const auto& stat : _statistics) {
-      int process_id;
-      std::size_t thread_id;
       std::string function;
       boost::optional<std::string> label;
-      std::tie(process_id, thread_id, function, label) = stat.first;
+      std::tie(function, label) = stat.first;
       add_event({
         process_id,
         thread_id,
@@ -180,13 +188,11 @@ class coordinator_tmpl {
   }
 
   void accumulate(
-      int process_id,
-      std::size_t thread_id,
       const std::string& function,
       const boost::optional<std::string>& label,
       const int64_t duration) {
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
-    _statistics[std::make_tuple(process_id, thread_id, function, label)].update(duration);
+    _statistics[std::make_tuple(function, label)].update(duration);
   }
 
   void work() {
@@ -217,7 +223,7 @@ class coordinator_tmpl {
   std::ostream& _stream;
   std::atomic_bool _done;
   std::map<
-    std::tuple<int, std::size_t, std::string, boost::optional<std::string>>,
+    std::tuple<std::string, boost::optional<std::string>>,
     StreamStatistics
   > _statistics;
   // Using boost::thread instead of std::thread to avoid this segmentation fault:
@@ -227,35 +233,69 @@ class coordinator_tmpl {
 };
 
 template<typename Info>
-class stopwatch_tmpl {
+class heavy_stopwatch_tmpl {
  public:
-  stopwatch_tmpl(
+  heavy_stopwatch_tmpl(
     coordinator_tmpl<Info>* coordinator,
     const std::string& function,
     const std::string& label,
     const boost::optional<int> index = boost::none) :
-      stopwatch_tmpl(coordinator, function, boost::optional<std::string>(label), index)
+      heavy_stopwatch_tmpl(coordinator, function, boost::optional<std::string>(label), index)
   {};
 
-  stopwatch_tmpl(
+  heavy_stopwatch_tmpl(
       coordinator_tmpl<Info>* coordinator,
       const std::string& function,
       const boost::optional<std::string>& label = boost::none,
       const boost::optional<int> index = boost::none) :
-    _coordinator(coordinator),
-    _function(function),
-    _label(label),
-    _start_time(coordinator->start_stopwatch(function, label, index))
-  {}
+        _coordinator(coordinator) {
+    coordinator->start_heavy_stopwatch(function, label, index);
+  }
 
-  ~stopwatch_tmpl() {
-    _coordinator->stop_stopwatch(_function, _label, _start_time);
+  ~heavy_stopwatch_tmpl() {
+    _coordinator->stop_heavy_stopwatch();
   }
 
  private:
-  stopwatch_tmpl(const stopwatch_tmpl&) = delete;
-  stopwatch_tmpl(const stopwatch_tmpl&&) = delete;
-  stopwatch_tmpl& operator=(const stopwatch_tmpl&) = delete;
+  heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&) = delete;
+  heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&&) = delete;
+  heavy_stopwatch_tmpl& operator=(const heavy_stopwatch_tmpl&) = delete;
+  heavy_stopwatch_tmpl& operator=(const heavy_stopwatch_tmpl&&) = delete;
+
+  coordinator_tmpl<Info>* _coordinator;
+};
+
+template<typename Info>
+class light_stopwatch_tmpl {
+ public:
+  light_stopwatch_tmpl(
+    coordinator_tmpl<Info>* coordinator,
+    const std::string& function,
+    const std::string& label,
+    const boost::optional<int> index = boost::none) :
+      light_stopwatch_tmpl(coordinator, function, boost::optional<std::string>(label), index)
+  {};
+
+  light_stopwatch_tmpl(
+      coordinator_tmpl<Info>* coordinator,
+      const std::string& function,
+      const boost::optional<std::string>& label = boost::none,
+      const boost::optional<int> /*index*/ = boost::none) :
+    _coordinator(coordinator),
+    _function(function),
+    _label(label),
+    _start_time(coordinator->start_light_stopwatch())
+  {}
+
+  ~light_stopwatch_tmpl() {
+    _coordinator->stop_light_stopwatch(_function, _label, _start_time);
+  }
+
+ private:
+  light_stopwatch_tmpl(const light_stopwatch_tmpl&) = delete;
+  light_stopwatch_tmpl(const light_stopwatch_tmpl&&) = delete;
+  light_stopwatch_tmpl& operator=(const light_stopwatch_tmpl&) = delete;
+  light_stopwatch_tmpl& operator=(const light_stopwatch_tmpl&&) = delete;
 
   coordinator_tmpl<Info>* _coordinator;
   const std::string _function;
@@ -279,7 +319,8 @@ struct RealInfo {
   }
 };
 
-typedef stopwatch_tmpl<RealInfo> stopwatch;
+typedef heavy_stopwatch_tmpl<RealInfo> heavy_stopwatch;
+typedef light_stopwatch_tmpl<RealInfo> light_stopwatch;
 typedef coordinator_tmpl<RealInfo> coordinator;
 
 extern coordinator global_coordinator;
@@ -297,10 +338,16 @@ extern coordinator global_coordinator;
 
 #define CHRONE(...)
 
+#define MINICHRONE(...)
+
 #else
 
-// Variadic macro that forwards its arguments to the appropriate chrones::stopwatch constructor
-#define CHRONE(...) chrones::stopwatch chrone_stopwatch##__line__( \
+// Variadic macros that forwards its arguments to the appropriate constructors
+#define CHRONE(...) chrones::heavy_stopwatch chrones_stopwatch##__line__( \
+  &chrones::global_coordinator, chrones::quote_for_csv(__PRETTY_FUNCTION__) \
+  __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
+
+#define MINICHRONE(...) chrones::light_stopwatch chrones_stopwatch##__line__( \
   &chrones::global_coordinator, chrones::quote_for_csv(__PRETTY_FUNCTION__) \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 

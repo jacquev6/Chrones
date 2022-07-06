@@ -17,6 +17,9 @@ namespace foo {
 struct Bar {
   static void actual_file_g(int, float, std::pair<int, float>*) {
     CHRONE();
+    {
+      MINICHRONE("mini");
+    }
   }
 };
 
@@ -24,6 +27,9 @@ struct Bar {
 
 void actual_file_h() {
   CHRONE();
+  {
+    MINICHRONE("mini");
+  }
 }
 
 void actual_file_f() {
@@ -86,11 +92,12 @@ int64_t MockInfo::time = 0;
 int MockInfo::process_id = 0;
 std::size_t MockInfo::thread_id = 0;
 
-typedef chrones::stopwatch_tmpl<MockInfo> stopwatch;
+typedef chrones::heavy_stopwatch_tmpl<MockInfo> heavy_stopwatch;
+typedef chrones::light_stopwatch_tmpl<MockInfo> light_stopwatch;
 typedef chrones::coordinator_tmpl<MockInfo> coordinator;
 
 
-TEST(ChronesTest, BasicOnce) {
+TEST(ChronesTest, BasicHeavyOnce) {
   for (int i = 0; i != 5000; ++i) {  // Repeat test to gain confidence about race conditions
     std::ostringstream oss;
     MockInfo::time = 652;
@@ -100,7 +107,7 @@ TEST(ChronesTest, BasicOnce) {
     {
       coordinator c(oss);
       {
-        stopwatch t(&c, "f");
+        heavy_stopwatch t(&c, "f");
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -109,12 +116,33 @@ TEST(ChronesTest, BasicOnce) {
     ASSERT_EQ(
       oss.str(),
       "7,12,652,sw_start,f,-,-\n"
-      "7,12,694,sw_stop\n"
+      "7,12,694,sw_stop\n");
+  }
+}
+
+TEST(ChronesTest, BasicLightOnce) {
+  for (int i = 0; i != 5000; ++i) {  // Repeat test to gain confidence about race conditions
+    std::ostringstream oss;
+    MockInfo::time = 652;
+    MockInfo::process_id = 7;
+    MockInfo::thread_id = 12;
+
+    {
+      coordinator c(oss);
+      {
+        light_stopwatch t(&c, "f");
+        MockInfo::time = 694;
+      }
+      MockInfo::time = 710;
+    }
+
+    ASSERT_EQ(
+      oss.str(),
       "7,12,710,sw_summary,f,-,1,42,0,42,42,42,42\n");
   }
 }
 
-TEST(ChronesTest, BasicFewTimes) {
+TEST(ChronesTest, BasicHeavyFewTimes) {
     std::ostringstream oss;
     MockInfo::time = 122;
     MockInfo::process_id = 8;
@@ -124,7 +152,7 @@ TEST(ChronesTest, BasicFewTimes) {
       coordinator c(oss);
       for (int i = 1; i != 4; ++i) {
         MockInfo::time += i * 4;
-        stopwatch t(&c, "f", boost::none, i);
+        heavy_stopwatch t(&c, "f", boost::none, i);
         MockInfo::time += i * 3;
       }
       MockInfo::time = 200;
@@ -137,7 +165,27 @@ TEST(ChronesTest, BasicFewTimes) {
       "8,1,137,sw_start,f,-,2\n"
       "8,1,143,sw_stop\n"
       "8,1,155,sw_start,f,-,3\n"
-      "8,1,164,sw_stop\n"
+      "8,1,164,sw_stop\n");
+}
+
+TEST(ChronesTest, BasicLightFewTimes) {
+    std::ostringstream oss;
+    MockInfo::time = 122;
+    MockInfo::process_id = 8;
+    MockInfo::thread_id = 1;
+
+    {
+      coordinator c(oss);
+      for (int i = 1; i != 4; ++i) {
+        MockInfo::time += i * 4;
+        light_stopwatch t(&c, "f", boost::none, i);
+        MockInfo::time += i * 3;
+      }
+      MockInfo::time = 200;
+    }
+
+    ASSERT_EQ(
+      oss.str(),
       "8,1,200,sw_summary,f,-,3,6,2,3,6,9,18\n");
 }
 
@@ -149,14 +197,13 @@ TEST(ChronesTest, LabelWithQuotes) {
 
   {
     coordinator c(oss);
-    stopwatch t(&c, "f", "a 'label' with \"quotes\"");
+    heavy_stopwatch t(&c, "f", "a 'label' with \"quotes\"");
   }
 
   ASSERT_EQ(
     oss.str(),
     "0,0,0,sw_start,f,\"a 'label' with \"\"quotes\"\"\",-\n"
-    "0,0,0,sw_stop\n"
-    "0,0,0,sw_summary,f,\"a 'label' with \"\"quotes\"\"\",1,0,0,0,0,0,0\n");
+    "0,0,0,sw_stop\n");
 }
 
 TEST(ChronesTest, Index) {
@@ -167,14 +214,13 @@ TEST(ChronesTest, Index) {
 
   {
     coordinator c(oss);
-    stopwatch t(&c, "f", "label", 42);
+    heavy_stopwatch t(&c, "f", "label", 42);
   }
 
   ASSERT_EQ(
     oss.str(),
     "0,0,0,sw_start,f,\"label\",42\n"
-    "0,0,0,sw_stop\n"
-    "0,0,0,sw_summary,f,\"label\",1,0,0,0,0,0,0\n");
+    "0,0,0,sw_stop\n");
 }
 
 #endif  // NO_CHRONES
