@@ -50,6 +50,7 @@ build/c++/chrones-tests.o: c++/chrones.hpp
 build/c++/chrones.o: c++/chrones.hpp
 build/c++/chrones-tests: build/c++/chrones.o
 build/c++/stream-statistics-tests.o: c++/stream-statistics.hpp
+build/c++/chrones-tests.cpp.tests.ok: chrones-report.py c++/chrones-tests.py
 
 ########
 # Lint #
@@ -75,8 +76,8 @@ build/%-tests.cpp.tests.ok: build/%-tests
 	@echo "$<"
 	@mkdir -p $(dir $@)
 	@rm -f build/$*-tests.*.chrones.csv
-	@cd build/c++ && ../../$<
-	@if [ "$*" = "c++/chrones" ]; then ./chrones-report.py summaries build/$*-tests.*.chrones.csv >build/$*-tests.chrones.summaries.json; fi
+	@cd build/c++ && OMP_NUM_THREADS=4 ../../$<
+	@if [ "$*" = "c++/chrones" ]; then ./chrones-report.py summaries build/c++/chrones-tests.*.chrones.csv >build/c++/chrones-tests.chrones.summaries.json && c++/chrones-tests.py build/c++/chrones-tests.chrones.summaries.json; fi
 	@touch $@
 
 ########

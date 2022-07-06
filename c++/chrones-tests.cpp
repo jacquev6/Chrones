@@ -30,13 +30,13 @@ void actual_file_f() {
   CHRONE();
 
   #pragma omp parallel for
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 6; ++i) {
     CHRONE("loop a", i);
     foo::Bar::actual_file_g(42, 57, nullptr);
   }
 
   #pragma omp parallel for
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 8; ++i) {
     CHRONE("loop b", i);
     actual_file_h();
   }
