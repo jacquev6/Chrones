@@ -22,7 +22,7 @@ object_files := $(patsubst %.cpp,build/%.o,$(c++_source_files))
 
 # Sentinel files
 cpplint_sentinel_files := $(patsubst %,build/%.cpplint.ok,$(c++_header_files) $(c++_source_files))
-test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files))
+test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files)) build/chrones-report.tests.ok
 
 .PHONY: debug-inventory
 debug-inventory:
@@ -46,11 +46,14 @@ compile: $(object_files)
 
 # Not worth automating with `g++ -M`: too simple
 
-build/c++/chrones-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
-build/c++/chrones.o: c++/chrones.hpp c++/stream-statistics.hpp
-build/c++/chrones-tests: build/c++/chrones.o
 build/c++/stream-statistics-tests.o: c++/stream-statistics.hpp
-build/c++/chrones-tests.cpp.tests.ok: chrones-report.py c++/chrones-tests.py
+build/c++/stream-statistics-tests:
+build/c++/stream-statistics-tests.ok:
+
+build/c++/chrones.o: c++/chrones.hpp c++/stream-statistics.hpp
+build/c++/chrones-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
+build/c++/chrones-tests: build/c++/chrones.o
+build/c++/chrones-tests.ok:
 
 ########
 # Lint #
@@ -77,7 +80,14 @@ build/%-tests.cpp.tests.ok: build/%-tests
 	@mkdir -p $(dir $@)
 	@rm -f build/$*-tests.*.chrones.csv
 	@cd build/c++ && OMP_NUM_THREADS=4 ../../$<
-	@if [ "$*" = "c++/chrones" ]; then ./chrones-report.py summaries build/c++/chrones-tests.*.chrones.csv >build/c++/chrones-tests.chrones.summaries.json && c++/chrones-tests.py build/c++/chrones-tests.chrones.summaries.json; fi
+	@touch $@
+
+build/chrones-report.tests.ok: chrones-report.py build/c++/chrones-tests.cpp.tests.ok c++/chrones-tests.py
+	@echo "chrones-report.py self-test"
+	@./chrones-report.py self-test
+	@echo "chrones-report.py summaries"
+	@./chrones-report.py summaries build/c++/chrones-tests.*.chrones.csv >build/c++/chrones-tests.chrones.summaries.json
+	@c++/chrones-tests.py build/c++/chrones-tests.chrones.summaries.json
 	@touch $@
 
 ########
