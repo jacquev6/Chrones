@@ -71,7 +71,7 @@ def summaries_command(args):
 @contextlib.contextmanager
 def open_events_file(events_file):
     with open(events_file) as f:
-        yield (make_event(line) for line in csv.reader(f))
+        yield filter(None, (make_event(line) for line in csv.reader(f)))
 
 
 def make_event(line):
@@ -85,6 +85,8 @@ def make_event(line):
         return StopwatchStart(process_id, thread_id, timestamp, function_name, label, index)
     elif line[3] == "sw_stop":
         return StopwatchStop(process_id, thread_id, timestamp)
+    else:
+        return None
 
 
 @dataclasses.dataclass
