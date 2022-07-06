@@ -232,7 +232,6 @@ class MultiThreadedDurationsExtractor:
         self.__extractors_per_thread = {}
 
     def process(self, event):
-        thread_id = event.thread_id
         extractor = self.__extractors_per_thread.setdefault(event.thread_id, SingleThreadedDurationsExtractor())
         extractor.process(event)
 

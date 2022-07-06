@@ -20,7 +20,7 @@ struct Bar {
   }
 };
 
-}
+}  // namespace foo
 
 void actual_file_h() {
   CHRONE();

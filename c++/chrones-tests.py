@@ -19,6 +19,7 @@ def main(summaries):
         ('void actual_file_h()', None, 8),
     ]
 
+    assert len(summaries) == len(expected), (summaries, expected)
     for summary, (expected_function, expected_label, expected_count) in zip(summaries, expected):
         assert summary["function"] == expected_function, (summary, expected_function)
         assert summary.get("label") == expected_label, (summary, expected_label)
