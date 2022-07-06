@@ -42,7 +42,7 @@ void actual_file_f() {
   }
 }
 
-TEST(TestChrones, ActualFile) {
+TEST(ChronesTest, ActualFile) {
   // This test doesn't actually check anything. It's used only to generate a `.chrones.csv` file for
   // testing `chrones.py report`.
   CHRONE();
@@ -55,7 +55,7 @@ TEST(TestChrones, ActualFile) {
   }
 }
 
-TEST(TestChrones, QuoteForCsv) {
+TEST(ChronesTest, QuoteForCsv) {
   EXPECT_EQ(chrones::quote_for_csv("a"), "\"a\"");
   EXPECT_EQ(chrones::quote_for_csv("abc\"def"), "\"abc\"\"def\"");
   EXPECT_EQ(chrones::quote_for_csv("abc\""), "\"abc\"\"\"");
@@ -90,7 +90,7 @@ typedef chrones::stopwatch_tmpl<MockInfo> stopwatch;
 typedef chrones::coordinator_tmpl<MockInfo> coordinator;
 
 
-TEST(TestChrones, Basic) {
+TEST(ChronesTest, Basic) {
   for (int i = 0; i != 5000; ++i) {  // Repeat test to gain confidence about race conditions
     std::ostringstream oss;
     MockInfo::time = 652;
@@ -107,7 +107,7 @@ TEST(TestChrones, Basic) {
   }
 }
 
-TEST(TestChrones, LabelWithQuotes) {
+TEST(ChronesTest, LabelWithQuotes) {
   std::ostringstream oss;
   MockInfo::time = 1222;
   MockInfo::process_id = 5;
@@ -124,7 +124,7 @@ TEST(TestChrones, LabelWithQuotes) {
     "5,57,1222,sw_start,f,\"a 'label' with \"\"quotes\"\"\",-\n5,57,1712,sw_stop\n");
 }
 
-TEST(TestChrones, Index) {
+TEST(ChronesTest, Index) {
   std::ostringstream oss;
   MockInfo::time = 788;
   MockInfo::process_id = 6;
