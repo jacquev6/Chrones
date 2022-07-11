@@ -221,6 +221,11 @@ class coordinator_tmpl {
     }
   }
 
+  // `boost::lockfree::queue` cannot contain anything smart (see "Requirements" in
+  // https://www.boost.org/doc/libs/1_76_0/doc/html/boost/lockfree/queue.html), so we have to
+  // use plain pointers. The resources acquired by this `new` are released in `work`.
+  // The destructor ensures this worker thread finishes dequeuing all events.
+
   void add_event(const event& e) {
     _events.push(new event(e));
   }
