@@ -96,6 +96,7 @@ struct event {
   int process_id;
   std::size_t thread_id;
   int64_t time;
+  std::string kind;
   std::vector<std::string> attributes;
 };
 
@@ -117,20 +118,57 @@ class coordinator_tmpl {
  public:
   // @todo Add logs of level TRACE
   int64_t start_heavy_stopwatch(
-    const std::string& function,
-    const boost::optional<std::string>& label,
-    const boost::optional<int> index
+    const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
     add_event(event {
       Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
+      "sw_start",
       {
-        "sw_start",
         function,
-        label == boost::none ? "-" : quote_for_csv(*label),
-        index == boost::none ? "-" : std::to_string(*index),
+        "-",
+        "-",
+      }
+    });
+    return start_time;
+  }
+
+  int64_t start_heavy_stopwatch(
+    const std::string& function,
+    const std::string& label
+  ) {
+    const int64_t start_time = Info::get_time();
+    add_event(event {
+      Info::get_process_id(),
+      Info::get_thread_id(),
+      start_time,
+      "sw_start",
+      {
+        function,
+        quote_for_csv(label),
+        "-",
+      }
+    });
+    return start_time;
+  }
+
+  int64_t start_heavy_stopwatch(
+    const std::string& function,
+    const std::string& label,
+    const int index
+  ) {
+    const int64_t start_time = Info::get_time();
+    add_event(event {
+      Info::get_process_id(),
+      Info::get_thread_id(),
+      start_time,
+      "sw_start",
+      {
+        function,
+        quote_for_csv(label),
+        std::to_string(index),
       }
     });
     return start_time;
@@ -138,7 +176,7 @@ class coordinator_tmpl {
 
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
-    add_event({ Info::get_process_id(), Info::get_thread_id(), stop_time, { "sw_stop" }});
+    add_event({ Info::get_process_id(), Info::get_thread_id(), stop_time, "sw_stop", {}});
   }
 
   int64_t start_light_stopwatch() {
@@ -168,8 +206,8 @@ class coordinator_tmpl {
         process_id,
         thread_id,
         stop_time,
+        "sw_summary",
         {
-          "sw_summary",
           function,
           label == boost::none ? "-" : quote_for_csv(*label),
           std::to_string(stat.second.count()),
@@ -201,7 +239,7 @@ class coordinator_tmpl {
     // this "poll, sleep" loop.
     while (true) {
       _events.consume_all([this](const event* event) {
-        _stream << event->process_id << ',' << event->thread_id << ',' << event->time;
+        _stream << event->process_id << ',' << event->thread_id << ',' << event->time << ',' << event->kind;
         for (auto& attribute : event->attributes) {
           _stream << ',' << attribute;
         }
@@ -236,18 +274,25 @@ template<typename Info>
 class heavy_stopwatch_tmpl {
  public:
   heavy_stopwatch_tmpl(
-    coordinator_tmpl<Info>* coordinator,
-    const std::string& function,
-    const std::string& label,
-    const boost::optional<int> index = boost::none) :
-      heavy_stopwatch_tmpl(coordinator, function, boost::optional<std::string>(label), index)
-  {};
+      coordinator_tmpl<Info>* coordinator,
+      const std::string& function) :
+        _coordinator(coordinator) {
+    coordinator->start_heavy_stopwatch(function);
+  }
 
   heavy_stopwatch_tmpl(
       coordinator_tmpl<Info>* coordinator,
       const std::string& function,
-      const boost::optional<std::string>& label = boost::none,
-      const boost::optional<int> index = boost::none) :
+      const std::string& label) :
+        _coordinator(coordinator) {
+    coordinator->start_heavy_stopwatch(function, label);
+  }
+
+  heavy_stopwatch_tmpl(
+      coordinator_tmpl<Info>* coordinator,
+      const std::string& function,
+      const std::string& label,
+      const int index) :
         _coordinator(coordinator) {
     coordinator->start_heavy_stopwatch(function, label, index);
   }

@@ -52,12 +52,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-// 1.48968s
-// 1.44116s
-// 1.56582s
-// 1.3197s
-// 1.54042s
-// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (8186 ms)
+// 1.03545s
+// 0.996033s
+// 1.07246s
+// 0.908944s
+// 1.09625s
+// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5904 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != 5; ++j) {
@@ -73,12 +73,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-// 1.9144s
-// 2.01019s
-// 1.49277s
-// 1.60026s
-// 1.26676s
-// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (11438 ms)
+// 1.1297s
+// 1.074s
+// 1.14781s
+// 1.07983s
+// 1.03868s
+// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (6919 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != 5; ++j) {
@@ -94,12 +94,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-// 2.29978s
-// 1.87949s
-// 1.77202s
-// 1.61973s
-// 1.74392s
-// [       OK ] HeavyChronesPerformanceTest.SequentialFull (11199 ms)
+// 1.21924s
+// 1.23741s
+// 1.23812s
+// 1.21232s
+// 1.24065s
+// [       OK ] HeavyChronesPerformanceTest.SequentialFull (7583 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   for (int j = 0; j != 5; ++j) {
@@ -116,9 +116,9 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-// 1.81319s
-// 0.539742s
-// 0.540837s
-// 0.536792s
-// 0.538241s
-// [       OK ] HeavyChronesPerformanceTest.ParallelFull (6767 ms)
+// 1.31601s
+// 0.564695s
+// 0.559556s
+// 0.561189s
+// 0.559s
+// [       OK ] HeavyChronesPerformanceTest.ParallelFull (5952 ms)
