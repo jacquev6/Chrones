@@ -24,7 +24,7 @@ std::string quote_for_csv(std::string s) {
 }
 
 std::ostream& operator<<(std::ostream& oss, const Event& event) {
-  oss << event.process_id << ',' << event.thread_id << ',' << event.time << ',' << event.kind;
+  oss << event.thread_id << ',' << event.time << ',' << event.kind;
   event.output_attributes(oss);
   return oss;
 }

@@ -95,11 +95,9 @@ std::string quote_for_csv(std::string);
 class Event {
  public:
   Event(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_,
     const std::string& kind_) :
-      process_id(process_id_),
       thread_id(thread_id_),
       time(time_),
       kind(kind_) {}
@@ -111,7 +109,6 @@ class Event {
   virtual void output_attributes(std::ostream&) const = 0;
 
  private:
-  int process_id;
   std::size_t thread_id;
   int64_t time;
   std::string kind;
@@ -120,11 +117,10 @@ class Event {
 class StopwatchStartPlainEvent : public Event {
  public:
   StopwatchStartPlainEvent(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_,
     const std::string& function_) :
-      Event(process_id_, thread_id_, time_, "sw_start"),
+      Event(thread_id_, time_, "sw_start"),
       function(function_) {}
 
  private:
@@ -139,12 +135,11 @@ class StopwatchStartPlainEvent : public Event {
 class StopwatchStartLabelledEvent : public Event {
  public:
   StopwatchStartLabelledEvent(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_,
     const std::string& function_,
     const std::string& label_) :
-      Event(process_id_, thread_id_, time_, "sw_start"),
+      Event(thread_id_, time_, "sw_start"),
       function(function_),
       label(label_) {}
 
@@ -161,13 +156,12 @@ class StopwatchStartLabelledEvent : public Event {
 class StopwatchStartFullEvent : public Event {
  public:
   StopwatchStartFullEvent(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_,
     const std::string& function_,
     const std::string& label_,
     const int index_) :
-      Event(process_id_, thread_id_, time_, "sw_start"),
+      Event(thread_id_, time_, "sw_start"),
       function(function_),
       label(label_),
       index(index_) {}
@@ -186,10 +180,9 @@ class StopwatchStartFullEvent : public Event {
 class StopwatchStopEvent : public Event {
  public:
   StopwatchStopEvent(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_) :
-      Event(process_id_, thread_id_, time_, "sw_stop") {}
+      Event(thread_id_, time_, "sw_stop") {}
 
  private:
   void output_attributes(std::ostream&) const override {}
@@ -198,7 +191,6 @@ class StopwatchStopEvent : public Event {
 class StopwatchSummaryEvent : public Event {
  public:
   StopwatchSummaryEvent(
-    const int process_id_,
     const std::size_t thread_id_,
     const int64_t time_,
     const std::string& function_,
@@ -210,7 +202,7 @@ class StopwatchSummaryEvent : public Event {
     const float median_,
     const float max_,
     const float sum_) :
-      Event(process_id_, thread_id_, time_, "sw_summary"),
+      Event(thread_id_, time_, "sw_summary"),
       function(function_),
       label(label_),
       count(count_),
@@ -269,7 +261,6 @@ class coordinator_tmpl {
   ) {
     const int64_t start_time = Info::get_time();
     _events.push(new StopwatchStartPlainEvent(
-      Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
       function));
@@ -282,7 +273,6 @@ class coordinator_tmpl {
   ) {
     const int64_t start_time = Info::get_time();
     _events.push(new StopwatchStartLabelledEvent(
-      Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
       function,
@@ -297,7 +287,6 @@ class coordinator_tmpl {
   ) {
     const int64_t start_time = Info::get_time();
     _events.push(new StopwatchStartFullEvent(
-      Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
       function,
@@ -309,7 +298,6 @@ class coordinator_tmpl {
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
     _events.push(new StopwatchStopEvent(
-      Info::get_process_id(),
       Info::get_thread_id(),
       stop_time));
   }
@@ -329,7 +317,6 @@ class coordinator_tmpl {
 
  private:
   void add_summary_events() {
-    const int process_id = Info::get_process_id();
     const std::size_t thread_id = Info::get_thread_id();
     const int64_t stop_time = Info::get_time();
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
@@ -338,7 +325,6 @@ class coordinator_tmpl {
       boost::optional<std::string> label;
       std::tie(function, label) = stat.first;
       _events.push(new StopwatchSummaryEvent(
-        process_id,
         thread_id,
         stop_time,
         function,
@@ -362,12 +348,13 @@ class coordinator_tmpl {
   }
 
   void work() {
+    const int process_id = Info::get_process_id();
     // There is no blocking `pop` on a boost::lockfree::queue because it would defeat its very purpose.
     // But we only care about `push` being lock-free, so we emulate a blocking `pop` with
     // this "poll, sleep" loop.
     while (true) {
-      _events.consume_all([this](const Event* event) {
-        _stream << *event << '\n';  // No std::endl: don't flush each line, improve performance
+      _events.consume_all([this, process_id](const Event* event) {
+        _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
         delete event;
       });
 
