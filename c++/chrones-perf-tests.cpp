@@ -17,6 +17,10 @@ using chrones::heavy_stopwatch;
 #define MILLION 1000000
 
 
+// Note: 'EXPECT_LE's that compare a duration measured during the test
+// with a fixed maximum expected are fragile. But performance is an
+// important aspect of Chrones, so I think this is better than nothing.
+
 class Timer {
  public:
   Timer() : start(std::chrono::steady_clock::now()) {}
@@ -48,7 +52,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
 
     const auto d = timer.duration();
     std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s" << std::endl;
-    // @todo EXPECT_LE(d, std::chrono::seconds(1));
+    EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
@@ -69,7 +73,11 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
 
     const auto d = timer.duration();
     std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s" << std::endl;
-    // @todo EXPECT_LE(d, std::chrono::seconds(1));
+    // @todo Understand why the first iteration is consistently longer than others
+    // Note: this happens *only* if another test is run before this one
+    if (j >= 1) {
+      EXPECT_LE(d, std::chrono::seconds(1));
+    }
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
@@ -90,7 +98,11 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
 
     const auto d = timer.duration();
     std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s" << std::endl;
-    // @todo EXPECT_LE(d, std::chrono::seconds(1));
+    // @todo Understand why the first iteration is consistently longer than others
+    // Note: this happens *only* if another test is run before this one
+    if (j >= 1) {
+      EXPECT_LE(d, std::chrono::seconds(1));
+    }
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
@@ -126,7 +138,7 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
       #pragma omp barrier
       #pragma omp master
       std::cerr << std::endl;
-      // @todo EXPECT_LE(d, std::chrono::seconds(1));
+      EXPECT_LE(d, std::chrono::seconds(1));
     }
   }
 }
