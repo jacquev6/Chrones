@@ -8,8 +8,6 @@
 #include "chrones.hpp"
 
 
-using chrones::quote_for_csv;
-
 CHRONABLE("chrones-tests")
 
 namespace foo {
@@ -62,10 +60,10 @@ TEST(ChronesTest, ActualFile) {
 }
 
 TEST(ChronesTest, QuoteForCsv) {
-  EXPECT_EQ(quote_for_csv("a"), "\"a\"");
-  EXPECT_EQ(quote_for_csv("abc\"def"), "\"abc\"\"def\"");
-  EXPECT_EQ(quote_for_csv("abc\""), "\"abc\"\"\"");
-  EXPECT_EQ(quote_for_csv("\"def"), "\"\"\"def\"");
+  EXPECT_EQ(chrones::quote_for_csv("a"), "\"a\"");
+  EXPECT_EQ(chrones::quote_for_csv("abc\"def"), "\"abc\"\"def\"");
+  EXPECT_EQ(chrones::quote_for_csv("abc\""), "\"abc\"\"\"");
+  EXPECT_EQ(chrones::quote_for_csv("\"def"), "\"\"\"def\"");
 }
 
 struct MockInfo {
@@ -107,7 +105,7 @@ TEST(ChronesTest, BasicHeavyOnce) {
     {
       coordinator c(oss);
       {
-        heavy_stopwatch t(&c, quote_for_csv("f"));
+        heavy_stopwatch t(&c, "f");
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -130,7 +128,7 @@ TEST(ChronesTest, BasicLightOnce) {
     {
       coordinator c(oss);
       {
-        light_stopwatch t(&c, quote_for_csv("f"));
+        light_stopwatch t(&c, "f");
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -152,7 +150,7 @@ TEST(ChronesTest, BasicHeavyFewTimes) {
       coordinator c(oss);
       for (int i = 1; i != 4; ++i) {
         MockInfo::time += i * 4;
-        heavy_stopwatch t(&c, quote_for_csv("f"), "label", i);
+        heavy_stopwatch t(&c, "f", "label", i);
         MockInfo::time += i * 3;
       }
       MockInfo::time = 200;
@@ -178,7 +176,7 @@ TEST(ChronesTest, BasicLightFewTimes) {
       coordinator c(oss);
       for (int i = 1; i != 4; ++i) {
         MockInfo::time += i * 4;
-        light_stopwatch t(&c, quote_for_csv("f"), boost::none, i);
+        light_stopwatch t(&c, "f", boost::none, i);
         MockInfo::time += i * 3;
       }
       MockInfo::time = 200;
@@ -197,7 +195,7 @@ TEST(ChronesTest, LabelWithQuotes) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, quote_for_csv("f"), "a 'label' with \"quotes\"");
+    heavy_stopwatch t(&c, "f", "a 'label' with \"quotes\"");
   }
 
   ASSERT_EQ(
@@ -214,7 +212,7 @@ TEST(ChronesTest, Index) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, quote_for_csv("f"), "label", 42);
+    heavy_stopwatch t(&c, "f", "label", 42);
   }
 
   ASSERT_EQ(

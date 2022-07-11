@@ -92,12 +92,159 @@ namespace chrones {
 
 std::string quote_for_csv(std::string);
 
-struct event {
+class Event {
+ public:
+  Event(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_,
+    const std::string& kind_) :
+      process_id(process_id_),
+      thread_id(thread_id_),
+      time(time_),
+      kind(kind_) {}
+
+  virtual ~Event() {}
+
+ public:
+  friend std::ostream& operator<<(std::ostream&, const Event&);
+  virtual void output_attributes(std::ostream&) const = 0;
+
+ private:
   int process_id;
   std::size_t thread_id;
   int64_t time;
   std::string kind;
-  std::vector<std::string> attributes;
+};
+
+class StopwatchStartPlainEvent : public Event {
+ public:
+  StopwatchStartPlainEvent(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_,
+    const std::string& function_) :
+      Event(process_id_, thread_id_, time_, "sw_start"),
+      function(function_) {}
+
+ private:
+  void output_attributes(std::ostream& oss) const override {
+    oss << ',' << quote_for_csv(function) << ",-,-";
+  }
+
+ private:
+  std::string function;
+};
+
+class StopwatchStartLabelledEvent : public Event {
+ public:
+  StopwatchStartLabelledEvent(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_,
+    const std::string& function_,
+    const std::string& label_) :
+      Event(process_id_, thread_id_, time_, "sw_start"),
+      function(function_),
+      label(label_) {}
+
+ private:
+  void output_attributes(std::ostream& oss) const override {
+    oss << ',' << quote_for_csv(function) << ',' << quote_for_csv(label) << ",-";
+  }
+
+ private:
+  std::string function;
+  std::string label;
+};
+
+class StopwatchStartFullEvent : public Event {
+ public:
+  StopwatchStartFullEvent(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_,
+    const std::string& function_,
+    const std::string& label_,
+    const int index_) :
+      Event(process_id_, thread_id_, time_, "sw_start"),
+      function(function_),
+      label(label_),
+      index(index_) {}
+
+ private:
+  void output_attributes(std::ostream& oss) const override {
+    oss << ',' << quote_for_csv(function) << ',' << quote_for_csv(label) << ',' << index;
+  }
+
+ private:
+  std::string function;
+  std::string label;
+  int index;
+};
+
+class StopwatchStopEvent : public Event {
+ public:
+  StopwatchStopEvent(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_) :
+      Event(process_id_, thread_id_, time_, "sw_stop") {}
+
+ private:
+  void output_attributes(std::ostream&) const override {}
+};
+
+class StopwatchSummaryEvent : public Event {
+ public:
+  StopwatchSummaryEvent(
+    const int process_id_,
+    const std::size_t thread_id_,
+    const int64_t time_,
+    const std::string& function_,
+    const boost::optional<std::string>& label_,
+    const uint64_t count_,
+    const float mean_,
+    const float standard_deviation_,
+    const float min_,
+    const float median_,
+    const float max_,
+    const float sum_) :
+      Event(process_id_, thread_id_, time_, "sw_summary"),
+      function(function_),
+      label(label_),
+      count(count_),
+      mean(mean_),
+      standard_deviation(standard_deviation_),
+      min(min_),
+      median(median_),
+      max(max_),  // NOLINT(build/include_what_you_use)
+      sum(sum_) {}
+
+ private:
+  void output_attributes(std::ostream& oss) const override {
+    oss
+      << ',' << quote_for_csv(function)
+      << ',' << (label == boost::none ? "-" : quote_for_csv(*label))
+      << ',' << count
+      << ',' << static_cast<int64_t>(mean)
+      << ',' << static_cast<int64_t>(standard_deviation)
+      << ',' << static_cast<int64_t>(min)
+      << ',' << static_cast<int64_t>(median)
+      << ',' << static_cast<int64_t>(max)
+      << ',' << static_cast<int64_t>(sum);
+  }
+
+ private:
+  std::string function;
+  boost::optional<std::string> label;
+  uint64_t count;
+  float mean;
+  float standard_deviation;
+  float min;
+  float median;
+  float max;
+  float sum;
 };
 
 template<typename Info>
@@ -121,17 +268,11 @@ class coordinator_tmpl {
     const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(event {
+    _events.push(new StopwatchStartPlainEvent(
       Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
-      "sw_start",
-      {
-        function,
-        "-",
-        "-",
-      }
-    });
+      function));
     return start_time;
   }
 
@@ -140,17 +281,12 @@ class coordinator_tmpl {
     const std::string& label
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(event {
+    _events.push(new StopwatchStartLabelledEvent(
       Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
-      "sw_start",
-      {
-        function,
-        quote_for_csv(label),
-        "-",
-      }
-    });
+      function,
+      label));
     return start_time;
   }
 
@@ -160,23 +296,22 @@ class coordinator_tmpl {
     const int index
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(event {
+    _events.push(new StopwatchStartFullEvent(
       Info::get_process_id(),
       Info::get_thread_id(),
       start_time,
-      "sw_start",
-      {
-        function,
-        quote_for_csv(label),
-        std::to_string(index),
-      }
-    });
+      function,
+      label,
+      index));
     return start_time;
   }
 
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
-    add_event({ Info::get_process_id(), Info::get_thread_id(), stop_time, "sw_stop", {}});
+    _events.push(new StopwatchStopEvent(
+      Info::get_process_id(),
+      Info::get_thread_id(),
+      stop_time));
   }
 
   int64_t start_light_stopwatch() {
@@ -202,32 +337,20 @@ class coordinator_tmpl {
       std::string function;
       boost::optional<std::string> label;
       std::tie(function, label) = stat.first;
-      add_event({
+      _events.push(new StopwatchSummaryEvent(
         process_id,
         thread_id,
         stop_time,
-        "sw_summary",
-        {
-          function,
-          label == boost::none ? "-" : quote_for_csv(*label),
-          std::to_string(stat.second.count()),
-          std::to_string(static_cast<int64_t>(stat.second.mean())),
-          std::to_string(static_cast<int64_t>(stat.second.standard_deviation())),
-          std::to_string(static_cast<int64_t>(stat.second.min())),
-          std::to_string(static_cast<int64_t>(stat.second.median())),
-          std::to_string(static_cast<int64_t>(stat.second.max())),
-          std::to_string(static_cast<int64_t>(stat.second.sum())),
-        }});
+        function,
+        label,
+        stat.second.count(),
+        stat.second.mean(),
+        stat.second.standard_deviation(),
+        stat.second.min(),
+        stat.second.median(),
+        stat.second.max(),
+        stat.second.sum()));
     }
-  }
-
-  // `boost::lockfree::queue` cannot contain anything smart (see "Requirements" in
-  // https://www.boost.org/doc/libs/1_76_0/doc/html/boost/lockfree/queue.html), so we have to
-  // use plain pointers. The resources acquired by this `new` are released in `work`.
-  // The destructor ensures this worker thread finishes dequeuing all events.
-
-  void add_event(const event& e) {
-    _events.push(new event(e));
   }
 
   void accumulate(
@@ -243,12 +366,8 @@ class coordinator_tmpl {
     // But we only care about `push` being lock-free, so we emulate a blocking `pop` with
     // this "poll, sleep" loop.
     while (true) {
-      _events.consume_all([this](const event* event) {
-        _stream << event->process_id << ',' << event->thread_id << ',' << event->time << ',' << event->kind;
-        for (auto& attribute : event->attributes) {
-          _stream << ',' << attribute;
-        }
-        _stream  << '\n';  // No std::endl: don't flush each line, improve performance
+      _events.consume_all([this](const Event* event) {
+        _stream << *event << '\n';  // No std::endl: don't flush each line, improve performance
         delete event;
       });
 
@@ -262,7 +381,12 @@ class coordinator_tmpl {
   }
 
  private:
-  boost::lockfree::queue<const event*> _events;
+  // `boost::lockfree::queue` cannot contain anything smart (see "Requirements" in
+  // https://www.boost.org/doc/libs/1_76_0/doc/html/boost/lockfree/queue.html), so we have to
+  // use plain pointers. The resources are acquired by `new XxxEvent` in this class only,
+  // and are released in the `work` method. The destructor of this class ensures this method
+  // is run to completion.
+  boost::lockfree::queue<const Event*> _events;
   std::ostream& _stream;
   std::atomic_bool _done;
   std::map<
@@ -394,11 +518,11 @@ extern coordinator global_coordinator;
 
 // Variadic macros that forwards its arguments to the appropriate constructors
 #define CHRONE(...) chrones::heavy_stopwatch chrones_stopwatch##__line__( \
-  &chrones::global_coordinator, chrones::quote_for_csv(__PRETTY_FUNCTION__) \
+  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #define MINICHRONE(...) chrones::light_stopwatch chrones_stopwatch##__line__( \
-  &chrones::global_coordinator, chrones::quote_for_csv(__PRETTY_FUNCTION__) \
+  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #endif

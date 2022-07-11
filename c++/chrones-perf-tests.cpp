@@ -12,7 +12,6 @@
 
 using chrones::coordinator;
 using chrones::heavy_stopwatch;
-using chrones::quote_for_csv;
 
 #define MILLION 1000000
 
@@ -43,7 +42,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, quote_for_csv(__PRETTY_FUNCTION__));
+      heavy_stopwatch t(&c, __PRETTY_FUNCTION__);
     }
 
     const auto d = timer.duration();
@@ -52,19 +51,19 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-// 1.03545s
-// 0.996033s
-// 1.07246s
-// 0.908944s
-// 1.09625s
-// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5904 ms)
+// 0.809478s
+// 0.782697s
+// 0.734654s
+// 0.834528s
+// 0.626781s
+// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5037 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != 5; ++j) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, quote_for_csv(__PRETTY_FUNCTION__), "label");
+      heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label");
     }
 
     const auto d = timer.duration();
@@ -73,19 +72,19 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-// 1.1297s
-// 1.074s
-// 1.14781s
-// 1.07983s
-// 1.03868s
-// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (6919 ms)
+// 1.45906s
+// 0.991776s
+// 0.805872s
+// 1.16935s
+// 1.03989s
+// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (7096 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != 5; ++j) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, quote_for_csv(__PRETTY_FUNCTION__), "label", i);
+      heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label", i);
     }
 
     const auto d = timer.duration();
@@ -94,12 +93,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-// 1.21924s
-// 1.23741s
-// 1.23812s
-// 1.21232s
-// 1.24065s
-// [       OK ] HeavyChronesPerformanceTest.SequentialFull (7583 ms)
+// 1.38326s
+// 1.29593s
+// 1.42896s
+// 1.17043s
+// 0.975813s
+// [       OK ] HeavyChronesPerformanceTest.SequentialFull (10056 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   for (int j = 0; j != 5; ++j) {
@@ -107,7 +106,7 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
 
     #pragma omp parallel for
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, quote_for_csv(__PRETTY_FUNCTION__), "label", i);
+      heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label", i);
     }
 
     const auto d = timer.duration();
@@ -116,9 +115,9 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-// 1.31601s
-// 0.564695s
-// 0.559556s
-// 0.561189s
-// 0.559s
-// [       OK ] HeavyChronesPerformanceTest.ParallelFull (5952 ms)
+// 1.65702s
+// 0.538118s
+// 0.546138s
+// 0.533121s
+// 0.551498s
+// [       OK ] HeavyChronesPerformanceTest.ParallelFull (7038 ms)
