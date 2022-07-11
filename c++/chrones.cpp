@@ -1,8 +1,6 @@
 // Copyright 2020-2022 Laurent Cabaret
 // Copyright 2020-2022 Vincent Jacques
 
-#ifndef NO_CHRONES
-
 #include "chrones.hpp"
 
 #include <iostream>
@@ -26,5 +24,3 @@ std::string quote_for_csv(std::string s) {
 }
 
 }  // namespace chrones
-
-#endif  // NO_CHRONES

@@ -1,8 +1,6 @@
 // Copyright 2020-2022 Laurent Cabaret
 // Copyright 2020-2022 Vincent Jacques
 
-#ifndef NO_CHRONES
-
 #include <gtest/gtest.h>
 
 #include <sstream>
@@ -222,5 +220,3 @@ TEST(ChronesTest, Index) {
     "0,0,0,sw_start,f,\"label\",42\n"
     "0,0,0,sw_stop\n");
 }
-
-#endif  // NO_CHRONES
