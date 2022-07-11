@@ -16,7 +16,6 @@
 
 #include <atomic>
 #include <chrono>  // NOLINT(build/c++11)
-#include <deque>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -27,6 +26,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/optional.hpp>
+#include <boost/lockfree/queue.hpp>
 
 #include "stream-statistics.hpp"
 
@@ -243,8 +243,7 @@ template<typename Info>
 class coordinator_tmpl {
  public:
   explicit coordinator_tmpl(std::ostream& stream) :
-    _events(),  // No 'reserve' method
-    _events_mutex(),
+    _events(1024),  // Arbitrary initial capacity that can grow anyway
     _stream(stream),
     _done(false),
     _statistics(),
@@ -351,22 +350,19 @@ class coordinator_tmpl {
   }
 
   void add_event(Event* event) {
-    boost::lock_guard<boost::mutex> guard(_events_mutex);
-    _events.push_back(event);
+    _events.push(event);
   }
 
   void work() {
     const int process_id = Info::get_process_id();
+    // There is no blocking `pop` on a boost::lockfree::queue because it would defeat its very purpose.
+    // But we only care about `push` being lock-free, so we emulate a blocking `pop` with
+    // this "poll, sleep" loop.
     while (true) {
-      {
-        boost::lock_guard<boost::mutex> guard(_events_mutex);
-        while (!_events.empty()) {
-          const Event* event = _events.front();
-          _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
-          delete event;
-          _events.pop_front();
-        }
-      }
+      _events.consume_all([this, process_id](const Event* event) {
+        _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
+        delete event;
+      });
 
       if (_done) {
         break;
@@ -378,8 +374,14 @@ class coordinator_tmpl {
   }
 
  private:
-  std::deque<const Event*> _events;
-  boost::mutex _events_mutex;
+  // `boost::lockfree::queue` cannot contain anything smart (see "Requirements" in
+  // https://www.boost.org/doc/libs/1_76_0/doc/html/boost/lockfree/queue.html), so we have to
+  // use plain pointers. The resources are acquired by `new XxxEvent` in this class only,
+  // and are released in the `work` method. The destructor of this class ensures this method
+  // is run to completion.
+  // A solution using a plain 'std::dequeu' synchronized using a 'boost::mutex' has been tested in commit 5fc1208.
+  // It led to worse performance than using the 'boost::lockfree::queue' and was reverted.
+  boost::lockfree::queue<const Event*> _events;
   std::ostream& _stream;
   std::atomic_bool _done;
   std::map<
