@@ -108,4 +108,4 @@ build/%-tests: build/%-tests.o
 build/%.o: %.cpp
 	@echo "g++  -c $< -o $@"
 	@mkdir -p $(dir $@)
-	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -g -O3 -fopenmp -c $< -o $@
+	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -Wsuggest-override -Weffc++ -g -O3 -fopenmp -c $< -o $@

@@ -246,6 +246,8 @@ class coordinator_tmpl {
     _events(1024),  // Arbitrary initial capacity that can grow anyway
     _stream(stream),
     _done(false),
+    _statistics(),
+    _statistics_mutex(),
     _worker(&coordinator_tmpl<Info>::work, this) {}
 
   ~coordinator_tmpl() {

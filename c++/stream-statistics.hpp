@@ -18,7 +18,8 @@ class StreamStatistics {
     _min(std::numeric_limits<float>::max()),
     _max(-std::numeric_limits<float>::max()),
     _sum(),
-    _m2n()
+    _m2n(),
+    _samples()
   {}
 
  public:
