@@ -262,7 +262,7 @@ class coordinator_tmpl {
     const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
-    _events.push(new StopwatchStartPlainEvent(
+    add_event(new StopwatchStartPlainEvent(
       Info::get_thread_id(),
       start_time,
       function));
@@ -274,7 +274,7 @@ class coordinator_tmpl {
     const std::string& label
   ) {
     const int64_t start_time = Info::get_time();
-    _events.push(new StopwatchStartLabelledEvent(
+    add_event(new StopwatchStartLabelledEvent(
       Info::get_thread_id(),
       start_time,
       function,
@@ -288,7 +288,7 @@ class coordinator_tmpl {
     const int index
   ) {
     const int64_t start_time = Info::get_time();
-    _events.push(new StopwatchStartFullEvent(
+    add_event(new StopwatchStartFullEvent(
       Info::get_thread_id(),
       start_time,
       function,
@@ -299,7 +299,7 @@ class coordinator_tmpl {
 
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
-    _events.push(new StopwatchStopEvent(
+    add_event(new StopwatchStopEvent(
       Info::get_thread_id(),
       stop_time));
   }
@@ -326,7 +326,7 @@ class coordinator_tmpl {
       std::string function;
       boost::optional<std::string> label;
       std::tie(function, label) = stat.first;
-      _events.push(new StopwatchSummaryEvent(
+      add_event(new StopwatchSummaryEvent(
         thread_id,
         stop_time,
         function,
@@ -347,6 +347,10 @@ class coordinator_tmpl {
       const int64_t duration) {
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
     _statistics[std::make_tuple(function, label)].update(duration);
+  }
+
+  void add_event(Event* event) {
+    _events.push(event);
   }
 
   void work() {
