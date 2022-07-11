@@ -8,6 +8,8 @@
 #include "chrones.hpp"
 
 
+using chrones::quote_for_csv;
+
 CHRONABLE("chrones-tests")
 
 namespace foo {
@@ -60,10 +62,10 @@ TEST(ChronesTest, ActualFile) {
 }
 
 TEST(ChronesTest, QuoteForCsv) {
-  EXPECT_EQ(chrones::quote_for_csv("a"), "\"a\"");
-  EXPECT_EQ(chrones::quote_for_csv("abc\"def"), "\"abc\"\"def\"");
-  EXPECT_EQ(chrones::quote_for_csv("abc\""), "\"abc\"\"\"");
-  EXPECT_EQ(chrones::quote_for_csv("\"def"), "\"\"\"def\"");
+  EXPECT_EQ(quote_for_csv("a"), "\"a\"");
+  EXPECT_EQ(quote_for_csv("abc\"def"), "\"abc\"\"def\"");
+  EXPECT_EQ(quote_for_csv("abc\""), "\"abc\"\"\"");
+  EXPECT_EQ(quote_for_csv("\"def"), "\"\"\"def\"");
 }
 
 struct MockInfo {
@@ -105,7 +107,7 @@ TEST(ChronesTest, BasicHeavyOnce) {
     {
       coordinator c(oss);
       {
-        heavy_stopwatch t(&c, "f");
+        heavy_stopwatch t(&c, quote_for_csv("f"));
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -113,7 +115,7 @@ TEST(ChronesTest, BasicHeavyOnce) {
 
     ASSERT_EQ(
       oss.str(),
-      "7,12,652,sw_start,f,-,-\n"
+      "7,12,652,sw_start,\"f\",-,-\n"
       "7,12,694,sw_stop\n");
   }
 }
@@ -128,7 +130,7 @@ TEST(ChronesTest, BasicLightOnce) {
     {
       coordinator c(oss);
       {
-        light_stopwatch t(&c, "f");
+        light_stopwatch t(&c, quote_for_csv("f"));
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -136,7 +138,7 @@ TEST(ChronesTest, BasicLightOnce) {
 
     ASSERT_EQ(
       oss.str(),
-      "7,12,710,sw_summary,f,-,1,42,0,42,42,42,42\n");
+      "7,12,710,sw_summary,\"f\",-,1,42,0,42,42,42,42\n");
   }
 }
 
@@ -150,7 +152,7 @@ TEST(ChronesTest, BasicHeavyFewTimes) {
       coordinator c(oss);
       for (int i = 1; i != 4; ++i) {
         MockInfo::time += i * 4;
-        heavy_stopwatch t(&c, "f", boost::none, i);
+        heavy_stopwatch t(&c, quote_for_csv("f"), "label", i);
         MockInfo::time += i * 3;
       }
       MockInfo::time = 200;
@@ -158,11 +160,11 @@ TEST(ChronesTest, BasicHeavyFewTimes) {
 
     ASSERT_EQ(
       oss.str(),
-      "8,1,126,sw_start,f,-,1\n"
+      "8,1,126,sw_start,\"f\",\"label\",1\n"
       "8,1,129,sw_stop\n"
-      "8,1,137,sw_start,f,-,2\n"
+      "8,1,137,sw_start,\"f\",\"label\",2\n"
       "8,1,143,sw_stop\n"
-      "8,1,155,sw_start,f,-,3\n"
+      "8,1,155,sw_start,\"f\",\"label\",3\n"
       "8,1,164,sw_stop\n");
 }
 
@@ -176,7 +178,7 @@ TEST(ChronesTest, BasicLightFewTimes) {
       coordinator c(oss);
       for (int i = 1; i != 4; ++i) {
         MockInfo::time += i * 4;
-        light_stopwatch t(&c, "f", boost::none, i);
+        light_stopwatch t(&c, quote_for_csv("f"), boost::none, i);
         MockInfo::time += i * 3;
       }
       MockInfo::time = 200;
@@ -184,7 +186,7 @@ TEST(ChronesTest, BasicLightFewTimes) {
 
     ASSERT_EQ(
       oss.str(),
-      "8,1,200,sw_summary,f,-,3,6,2,3,6,9,18\n");
+      "8,1,200,sw_summary,\"f\",-,3,6,2,3,6,9,18\n");
 }
 
 TEST(ChronesTest, LabelWithQuotes) {
@@ -195,12 +197,12 @@ TEST(ChronesTest, LabelWithQuotes) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, "f", "a 'label' with \"quotes\"");
+    heavy_stopwatch t(&c, quote_for_csv("f"), "a 'label' with \"quotes\"");
   }
 
   ASSERT_EQ(
     oss.str(),
-    "0,0,0,sw_start,f,\"a 'label' with \"\"quotes\"\"\",-\n"
+    "0,0,0,sw_start,\"f\",\"a 'label' with \"\"quotes\"\"\",-\n"
     "0,0,0,sw_stop\n");
 }
 
@@ -212,11 +214,11 @@ TEST(ChronesTest, Index) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, "f", "label", 42);
+    heavy_stopwatch t(&c, quote_for_csv("f"), "label", 42);
   }
 
   ASSERT_EQ(
     oss.str(),
-    "0,0,0,sw_start,f,\"label\",42\n"
+    "0,0,0,sw_start,\"f\",\"label\",42\n"
     "0,0,0,sw_stop\n");
 }

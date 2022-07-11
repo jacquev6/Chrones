@@ -52,6 +52,8 @@ build/c++/stream-statistics-tests:
 build/c++/chrones.o: c++/chrones.hpp c++/stream-statistics.hpp
 build/c++/chrones-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
 build/c++/chrones-tests: build/c++/chrones.o
+build/c++/chrones-perf-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
+build/c++/chrones-perf-tests: build/c++/chrones.o
 
 ########
 # Lint #
