@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <omp.h>
 
+#include <algorithm>
 #include <chrono>  // NOLINT(build/c++11)
 #include <iostream>
 #include <sstream>
@@ -36,10 +37,26 @@ class Timer {
 
 class HeavyChronesPerformanceTest : public testing::Test {
  protected:
-  HeavyChronesPerformanceTest() : oss(), c(oss) {}
+  HeavyChronesPerformanceTest() : oss(), c(new coordinator(oss)) {}
+
+  HeavyChronesPerformanceTest(const HeavyChronesPerformanceTest&) = delete;
+  HeavyChronesPerformanceTest& operator=(const HeavyChronesPerformanceTest&) = delete;
+  HeavyChronesPerformanceTest(HeavyChronesPerformanceTest&&) = delete;
+  HeavyChronesPerformanceTest& operator=(HeavyChronesPerformanceTest&&) = delete;
+
+  ~HeavyChronesPerformanceTest() {
+    delete c;
+    const std::string s = oss.str();
+    const int lines = std::count(s.begin(), s.end(), '\n');
+    EXPECT_EQ(
+      lines,
+      5 /* repetitions */
+      * 2 /* events per stopwatch */
+      * MILLION /* number of stopwatches per repetitions */);
+  }
 
   std::ostringstream oss;
-  coordinator c;
+  coordinator* c;
 };
 
 TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
@@ -47,7 +64,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, __PRETTY_FUNCTION__);
+      heavy_stopwatch t(c, __PRETTY_FUNCTION__);
     }
 
     const auto d = timer.duration();
@@ -68,7 +85,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label");
+      heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label");
     }
 
     const auto d = timer.duration();
@@ -93,7 +110,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
     Timer timer;
 
     for (int i = 0; i != MILLION; ++i) {
-      heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label", i);
+      heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
     }
 
     const auto d = timer.duration();
@@ -115,6 +132,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   const int threads = 8;
+  ASSERT_EQ(MILLION % threads, 0);
   omp_set_num_threads(threads);
   ASSERT_EQ(omp_get_num_threads(), 1);
 
@@ -126,7 +144,7 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
       Timer timer;
 
       for (int i = 0; i != MILLION / threads; ++i) {
-        heavy_stopwatch t(&c, __PRETTY_FUNCTION__, "label", i);
+        heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
       }
 
       #pragma omp barrier
