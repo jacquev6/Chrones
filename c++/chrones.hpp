@@ -90,7 +90,18 @@
 
 namespace chrones {
 
-std::string quote_for_csv(std::string);
+// The default CSV dialect used by Python's `csv` module interprets two double-quote characters
+// as a single one inside a double-quoted string. This function replaces each double-quote
+// character by two double-quote characters, and puts the result inside double-quotes.
+inline std::string quote_for_csv(std::string s) {
+  size_t start_pos = 0;
+  while ((start_pos = s.find('"', start_pos)) != std::string::npos) {
+    s.replace(start_pos, 1, "\"\"");
+    start_pos += 2;
+  }
+
+  return "\"" + s + "\"";
+}
 
 class Event {
  public:
@@ -113,6 +124,12 @@ class Event {
   int64_t time;
   std::string kind;
 };
+
+inline std::ostream& operator<<(std::ostream& oss, const Event& event) {
+  oss << event.thread_id << ',' << event.time << ',' << event.kind;
+  event.output_attributes(oss);
+  return oss;
+}
 
 class StopwatchStartPlainEvent : public Event {
  public:
@@ -570,8 +587,11 @@ extern coordinator global_coordinator;
 
 #define CHRONABLE(name) \
   namespace chrones { \
+    std::chrono::steady_clock::time_point RealInfo::startup_time = std::chrono::steady_clock::now(); \
+\
     std::ofstream global_stream( \
       std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv", std::ios_base::app); \
+\
     coordinator global_coordinator(global_stream); \
   }
 
