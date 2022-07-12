@@ -95,23 +95,23 @@ typedef chrones::coordinator_tmpl<MockInfo> coordinator;
 
 inline chrones::plain_light_stopwatch_tmpl<MockInfo> light_stopwatch(
   coordinator* coordinator,
-  const std::string& function
+  const char* function
 ) {
   return chrones::plain_light_stopwatch_tmpl<MockInfo>(coordinator, function);
 }
 
 inline chrones::labelled_light_stopwatch_tmpl<MockInfo> light_stopwatch(
   coordinator* coordinator,
-  const std::string& function,
-  const std::string& label
+  const char* function,
+  const char* label
 ) {
   return chrones::labelled_light_stopwatch_tmpl<MockInfo>(coordinator, function, label);
 }
 
 inline chrones::labelled_light_stopwatch_tmpl<MockInfo> light_stopwatch(
   coordinator* coordinator,
-  const std::string& function,
-  const std::string& label,
+  const char* function,
+  const char* label,
   int
 ) {
   return chrones::labelled_light_stopwatch_tmpl<MockInfo>(coordinator, function, label);

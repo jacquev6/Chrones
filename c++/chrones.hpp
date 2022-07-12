@@ -184,18 +184,16 @@ std::unique_ptr<T> make_unique(Args&&... args) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Core: coordinator
+// Core: events and coordinator
 ////////////////////////////////////////////////////////////////////////////////
 
 class Event {
  public:
   Event(
     const std::size_t thread_id_,
-    const int64_t time_,
-    const std::string& kind_) :
+    const int64_t time_) :
       thread_id(thread_id_),
-      time(time_),
-      kind(kind_) {}
+      time(time_) {}
 
   virtual ~Event() {}
 
@@ -206,11 +204,10 @@ class Event {
  private:
   std::size_t thread_id;
   int64_t time;
-  std::string kind;
 };
 
 inline std::ostream& operator<<(std::ostream& oss, const Event& event) {
-  oss << event.thread_id << ',' << event.time << ',' << event.kind;
+  oss << event.thread_id << ',' << event.time;
   event.output_attributes(oss);
   return oss;
 }
@@ -220,17 +217,22 @@ class StopwatchStartPlainEvent : public Event {
   StopwatchStartPlainEvent(
     const std::size_t thread_id_,
     const int64_t time_,
-    const std::string& function_) :
-      Event(thread_id_, time_, "sw_start"),
+    const char* function_) :
+      Event(thread_id_, time_),
       function(function_) {}
+
+  StopwatchStartPlainEvent(const StopwatchStartPlainEvent&) = default;
+  StopwatchStartPlainEvent(StopwatchStartPlainEvent&&) = default;
+  StopwatchStartPlainEvent& operator=(const StopwatchStartPlainEvent&) = default;
+  StopwatchStartPlainEvent& operator=(StopwatchStartPlainEvent&&) = default;
 
  private:
   void output_attributes(std::ostream& oss) const override {
-    oss << ',' << quote_for_csv(function) << ",-,-";
+    oss << ",sw_start," << quote_for_csv(function) << ",-,-";
   }
 
  private:
-  std::string function;
+  const char* function;
 };
 
 class StopwatchStartLabelledEvent : public Event {
@@ -238,20 +240,25 @@ class StopwatchStartLabelledEvent : public Event {
   StopwatchStartLabelledEvent(
     const std::size_t thread_id_,
     const int64_t time_,
-    const std::string& function_,
-    const std::string& label_) :
-      Event(thread_id_, time_, "sw_start"),
+    const char* function_,
+    const char* label_) :
+      Event(thread_id_, time_),
       function(function_),
       label(label_) {}
 
+  StopwatchStartLabelledEvent(const StopwatchStartLabelledEvent&) = default;
+  StopwatchStartLabelledEvent(StopwatchStartLabelledEvent&&) = default;
+  StopwatchStartLabelledEvent& operator=(const StopwatchStartLabelledEvent&) = default;
+  StopwatchStartLabelledEvent& operator=(StopwatchStartLabelledEvent&&) = default;
+
  private:
   void output_attributes(std::ostream& oss) const override {
-    oss << ',' << quote_for_csv(function) << ',' << quote_for_csv(label) << ",-";
+    oss << ",sw_start," << quote_for_csv(function) << ',' << quote_for_csv(label) << ",-";
   }
 
  private:
-  std::string function;
-  std::string label;
+  const char* function;
+  const char* label;
 };
 
 class StopwatchStartFullEvent : public Event {
@@ -259,22 +266,27 @@ class StopwatchStartFullEvent : public Event {
   StopwatchStartFullEvent(
     const std::size_t thread_id_,
     const int64_t time_,
-    const std::string& function_,
-    const std::string& label_,
+    const char* function_,
+    const char* label_,
     const int index_) :
-      Event(thread_id_, time_, "sw_start"),
+      Event(thread_id_, time_),
       function(function_),
       label(label_),
       index(index_) {}
 
+  StopwatchStartFullEvent(const StopwatchStartFullEvent&) = default;
+  StopwatchStartFullEvent(StopwatchStartFullEvent&&) = default;
+  StopwatchStartFullEvent& operator=(const StopwatchStartFullEvent&) = default;
+  StopwatchStartFullEvent& operator=(StopwatchStartFullEvent&&) = default;
+
  private:
   void output_attributes(std::ostream& oss) const override {
-    oss << ',' << quote_for_csv(function) << ',' << quote_for_csv(label) << ',' << index;
+    oss << ",sw_start," << quote_for_csv(function) << ',' << quote_for_csv(label) << ',' << index;
   }
 
  private:
-  std::string function;
-  std::string label;
+  const char* function;
+  const char* label;
   int index;
 };
 
@@ -283,10 +295,12 @@ class StopwatchStopEvent : public Event {
   StopwatchStopEvent(
     const std::size_t thread_id_,
     const int64_t time_) :
-      Event(thread_id_, time_, "sw_stop") {}
+      Event(thread_id_, time_) {}
 
  private:
-  void output_attributes(std::ostream&) const override {}
+  void output_attributes(std::ostream& oss) const override {
+    oss << ",sw_stop";
+  }
 };
 
 class StopwatchSummaryEvent : public Event {
@@ -294,8 +308,8 @@ class StopwatchSummaryEvent : public Event {
   StopwatchSummaryEvent(
     const std::size_t thread_id_,
     const int64_t time_,
-    const std::string& function_,
-    const boost::optional<std::string>& label_,
+    const char* function_,
+    const char* label_,
     const uint64_t count_,
     const float mean_,
     const float standard_deviation_,
@@ -303,7 +317,7 @@ class StopwatchSummaryEvent : public Event {
     const float median_,
     const float max_,
     const float sum_) :
-      Event(thread_id_, time_, "sw_summary"),
+      Event(thread_id_, time_),
       function(function_),
       label(label_),
       count(count_),
@@ -314,11 +328,16 @@ class StopwatchSummaryEvent : public Event {
       max(max_),  // NOLINT(build/include_what_you_use)
       sum(sum_) {}
 
+  StopwatchSummaryEvent(const StopwatchSummaryEvent&) = default;
+  StopwatchSummaryEvent(StopwatchSummaryEvent&&) = default;
+  StopwatchSummaryEvent& operator=(const StopwatchSummaryEvent&) = default;
+  StopwatchSummaryEvent& operator=(StopwatchSummaryEvent&&) = default;
+
  private:
   void output_attributes(std::ostream& oss) const override {
     oss
-      << ',' << quote_for_csv(function)
-      << ',' << (label == boost::none ? "-" : quote_for_csv(*label))
+      << ",sw_summary," << quote_for_csv(function)
+      << ',' << (label == nullptr ? "-" : quote_for_csv(label))
       << ',' << count
       << ',' << static_cast<int64_t>(mean)
       << ',' << static_cast<int64_t>(standard_deviation)
@@ -329,8 +348,8 @@ class StopwatchSummaryEvent : public Event {
   }
 
  private:
-  std::string function;
-  boost::optional<std::string> label;
+  const char* function;
+  const char* label;
   uint64_t count;
   float mean;
   float standard_deviation;
@@ -362,7 +381,7 @@ class coordinator_tmpl {
  public:
   // @todo Add logs of level TRACE
   void start_heavy_stopwatch(
-    const std::string& function
+    const char* function
   ) {
     const int64_t start_time = Info::get_time();
     add_event(std::move(make_unique<StopwatchStartPlainEvent>(
@@ -372,8 +391,8 @@ class coordinator_tmpl {
   }
 
   void start_heavy_stopwatch(
-    const std::string& function,
-    const std::string& label
+    const char* function,
+    const char* label
   ) {
     const int64_t start_time = Info::get_time();
     add_event(std::move(make_unique<StopwatchStartLabelledEvent>(
@@ -384,8 +403,8 @@ class coordinator_tmpl {
   }
 
   void start_heavy_stopwatch(
-    const std::string& function,
-    const std::string& label,
+    const char* function,
+    const char* label,
     const int index
   ) {
     const int64_t start_time = Info::get_time();
@@ -409,16 +428,16 @@ class coordinator_tmpl {
   }
 
   void stop_light_stopwatch(
-    const std::string& function,
+    const char* function,
     int64_t start_time
   ) {
     const int64_t stop_time = Info::get_time();
-    accumulate(function, boost::none, stop_time - start_time);
+    accumulate(function, nullptr, stop_time - start_time);
   }
 
   void stop_light_stopwatch(
-    const std::string& function,
-    const std::string& label,
+    const char* function,
+    const char* label,
     int64_t start_time
   ) {
     const int64_t stop_time = Info::get_time();
@@ -431,8 +450,8 @@ class coordinator_tmpl {
     const int64_t stop_time = Info::get_time();
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
     for (const auto& stat : _statistics) {
-      std::string function;
-      boost::optional<std::string> label;
+      const char* function;
+      const char* label;
       std::tie(function, label) = stat.first;
       add_event(std::move(make_unique<StopwatchSummaryEvent>(
         thread_id,
@@ -450,8 +469,8 @@ class coordinator_tmpl {
   }
 
   void accumulate(
-      const std::string& function,
-      const boost::optional<std::string>& label,
+      const char* function,
+      const char* label,
       const int64_t duration) {
     boost::lock_guard<boost::mutex> guard(_statistics_mutex);
     _statistics[std::make_tuple(function, label)].update(duration);
@@ -494,10 +513,7 @@ class coordinator_tmpl {
   std::vector<std::unique_ptr<Event>> _events;
   boost::mutex _events_mutex;
 
-  std::map<
-    std::tuple<std::string, boost::optional<std::string>>,
-    StreamStatistics
-  > _statistics;
+  std::map<std::tuple<const char*, const char*>, StreamStatistics> _statistics;
   boost::mutex _statistics_mutex;
 
   std::atomic_bool _work_done;
@@ -515,23 +531,23 @@ class heavy_stopwatch_tmpl {
  public:
   heavy_stopwatch_tmpl(
       coordinator_tmpl<Info>* coordinator,
-      const std::string& function) :
+      const char* function) :
         _coordinator(coordinator) {
     _coordinator->start_heavy_stopwatch(function);
   }
 
   heavy_stopwatch_tmpl(
       coordinator_tmpl<Info>* coordinator,
-      const std::string& function,
-      const std::string& label) :
+      const char* function,
+      const char* label) :
         _coordinator(coordinator) {
     _coordinator->start_heavy_stopwatch(function, label);
   }
 
   heavy_stopwatch_tmpl(
       coordinator_tmpl<Info>* coordinator,
-      const std::string& function,
-      const std::string& label,
+      const char* function,
+      const char* label,
       const int index) :
         _coordinator(coordinator) {
     _coordinator->start_heavy_stopwatch(function, label, index);
@@ -555,7 +571,7 @@ class plain_light_stopwatch_tmpl {
  public:
   plain_light_stopwatch_tmpl(
     coordinator_tmpl<Info>* coordinator,
-    const std::string& function) :
+    const char* function) :
     _coordinator(coordinator),
     _function(function),
     _start_time(coordinator->start_light_stopwatch())
@@ -572,7 +588,7 @@ class plain_light_stopwatch_tmpl {
 
  private:
   coordinator_tmpl<Info>* _coordinator;
-  const std::string _function;
+  const char* _function;
   int64_t _start_time;
 };
 
@@ -581,8 +597,8 @@ class labelled_light_stopwatch_tmpl {
  public:
   labelled_light_stopwatch_tmpl(
     coordinator_tmpl<Info>* coordinator,
-    const std::string& function,
-    const std::string& label) :
+    const char* function,
+    const char* label) :
       _coordinator(coordinator),
       _function(function),
       _label(label),
@@ -600,15 +616,15 @@ class labelled_light_stopwatch_tmpl {
 
  private:
   coordinator_tmpl<Info>* _coordinator;
-  const std::string _function;
-  const std::string _label;
+  const char* _function;
+  const char* _label;
   int64_t _start_time;
 };
 
 template<typename Info>
 plain_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
   coordinator_tmpl<Info>* coordinator,
-  const std::string& function
+  const char* function
 ) {
   return plain_light_stopwatch_tmpl<Info>(coordinator, function);
 }
@@ -616,8 +632,8 @@ plain_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
 template<typename Info>
 labelled_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
   coordinator_tmpl<Info>* coordinator,
-  const std::string& function,
-  const std::string& label
+  const char* function,
+  const char* label
 ) {
   return labelled_light_stopwatch_tmpl<Info>(coordinator, function, label);
 }
@@ -642,23 +658,23 @@ typedef heavy_stopwatch_tmpl<RealInfo> heavy_stopwatch;
 
 inline plain_light_stopwatch_tmpl<RealInfo> light_stopwatch(
   coordinator_tmpl<RealInfo>* coordinator,
-  const std::string& function
+  const char* function
 ) {
   return plain_light_stopwatch_tmpl<RealInfo>(coordinator, function);
 }
 
 inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
   coordinator_tmpl<RealInfo>* coordinator,
-  const std::string& function,
-  const std::string& label
+  const char* function,
+  const char* label
 ) {
   return labelled_light_stopwatch_tmpl<RealInfo>(coordinator, function, label);
 }
 
 inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
   coordinator_tmpl<RealInfo>* coordinator,
-  const std::string& function,
-  const std::string& label,
+  const char* function,
+  const char* label,
   int
 ) {
   return labelled_light_stopwatch_tmpl<RealInfo>(coordinator, function, label);
