@@ -314,7 +314,15 @@ class coordinator_tmpl {
 
   void stop_light_stopwatch(
     const std::string& function,
-    const boost::optional<std::string>& label,
+    int64_t start_time
+  ) {
+    const int64_t stop_time = Info::get_time();
+    accumulate(function, boost::none, stop_time - start_time);
+  }
+
+  void stop_light_stopwatch(
+    const std::string& function,
+    const std::string& label,
     int64_t start_time
   ) {
     const int64_t stop_time = Info::get_time();
@@ -433,52 +441,86 @@ class heavy_stopwatch_tmpl {
     _coordinator->stop_heavy_stopwatch();
   }
 
- private:
-  heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&) = delete;
-  heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&&) = delete;
-  heavy_stopwatch_tmpl& operator=(const heavy_stopwatch_tmpl&) = delete;
-  heavy_stopwatch_tmpl& operator=(const heavy_stopwatch_tmpl&&) = delete;
+  heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&) = default;
+  heavy_stopwatch_tmpl(heavy_stopwatch_tmpl&&) = default;
+  heavy_stopwatch_tmpl& operator=(const heavy_stopwatch_tmpl&) = default;
+  heavy_stopwatch_tmpl& operator=(heavy_stopwatch_tmpl&&) = default;
 
+ private:
   coordinator_tmpl<Info>* _coordinator;
 };
 
 template<typename Info>
-class light_stopwatch_tmpl {
+class plain_light_stopwatch_tmpl {
  public:
-  light_stopwatch_tmpl(
+  plain_light_stopwatch_tmpl(
     coordinator_tmpl<Info>* coordinator,
-    const std::string& function,
-    const std::string& label,
-    const boost::optional<int> index = boost::none) :
-      light_stopwatch_tmpl(coordinator, function, boost::optional<std::string>(label), index)
-  {};
-
-  light_stopwatch_tmpl(
-      coordinator_tmpl<Info>* coordinator,
-      const std::string& function,
-      const boost::optional<std::string>& label = boost::none,
-      const boost::optional<int> /*index*/ = boost::none) :
+    const std::string& function) :
     _coordinator(coordinator),
     _function(function),
-    _label(label),
     _start_time(coordinator->start_light_stopwatch())
   {}
 
-  ~light_stopwatch_tmpl() {
+  ~plain_light_stopwatch_tmpl() {
+    _coordinator->stop_light_stopwatch(_function, _start_time);
+  }
+
+  plain_light_stopwatch_tmpl(const plain_light_stopwatch_tmpl&) = default;
+  plain_light_stopwatch_tmpl(plain_light_stopwatch_tmpl&&) = default;
+  plain_light_stopwatch_tmpl& operator=(const plain_light_stopwatch_tmpl&) = default;
+  plain_light_stopwatch_tmpl& operator=(plain_light_stopwatch_tmpl&&) = default;
+
+ private:
+  coordinator_tmpl<Info>* _coordinator;
+  const std::string _function;
+  int64_t _start_time;
+};
+
+template<typename Info>
+class labelled_light_stopwatch_tmpl {
+ public:
+  labelled_light_stopwatch_tmpl(
+    coordinator_tmpl<Info>* coordinator,
+    const std::string& function,
+    const std::string& label) :
+      _coordinator(coordinator),
+      _function(function),
+      _label(label),
+      _start_time(coordinator->start_light_stopwatch())
+  {}
+
+  ~labelled_light_stopwatch_tmpl() {
     _coordinator->stop_light_stopwatch(_function, _label, _start_time);
   }
 
- private:
-  light_stopwatch_tmpl(const light_stopwatch_tmpl&) = delete;
-  light_stopwatch_tmpl(const light_stopwatch_tmpl&&) = delete;
-  light_stopwatch_tmpl& operator=(const light_stopwatch_tmpl&) = delete;
-  light_stopwatch_tmpl& operator=(const light_stopwatch_tmpl&&) = delete;
+  labelled_light_stopwatch_tmpl(const labelled_light_stopwatch_tmpl&) = default;
+  labelled_light_stopwatch_tmpl(labelled_light_stopwatch_tmpl&&) = default;
+  labelled_light_stopwatch_tmpl& operator=(const labelled_light_stopwatch_tmpl&) = default;
+  labelled_light_stopwatch_tmpl& operator=(labelled_light_stopwatch_tmpl&&) = default;
 
+ private:
   coordinator_tmpl<Info>* _coordinator;
   const std::string _function;
-  const boost::optional<std::string> _label;
+  const std::string _label;
   int64_t _start_time;
 };
+
+template<typename Info>
+plain_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
+  coordinator_tmpl<Info>* coordinator,
+  const std::string& function
+) {
+  return plain_light_stopwatch_tmpl<Info>(coordinator, function);
+}
+
+template<typename Info>
+labelled_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
+  coordinator_tmpl<Info>* coordinator,
+  const std::string& function,
+  const std::string& label
+) {
+  return labelled_light_stopwatch_tmpl<Info>(coordinator, function, label);
+}
 
 struct RealInfo {
   static std::chrono::steady_clock::time_point startup_time;
@@ -497,7 +539,31 @@ struct RealInfo {
 };
 
 typedef heavy_stopwatch_tmpl<RealInfo> heavy_stopwatch;
-typedef light_stopwatch_tmpl<RealInfo> light_stopwatch;
+
+inline plain_light_stopwatch_tmpl<RealInfo> light_stopwatch(
+  coordinator_tmpl<RealInfo>* coordinator,
+  const std::string& function
+) {
+  return plain_light_stopwatch_tmpl<RealInfo>(coordinator, function);
+}
+
+inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
+  coordinator_tmpl<RealInfo>* coordinator,
+  const std::string& function,
+  const std::string& label
+) {
+  return labelled_light_stopwatch_tmpl<RealInfo>(coordinator, function, label);
+}
+
+inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
+  coordinator_tmpl<RealInfo>* coordinator,
+  const std::string& function,
+  const std::string& label,
+  int
+) {
+  return labelled_light_stopwatch_tmpl<RealInfo>(coordinator, function, label);
+}
+
 typedef coordinator_tmpl<RealInfo> coordinator;
 
 extern coordinator global_coordinator;
@@ -520,11 +586,11 @@ extern coordinator global_coordinator;
 #else
 
 // Variadic macros that forwards its arguments to the appropriate constructors
-#define CHRONE(...) chrones::heavy_stopwatch chrones_stopwatch##__line__( \
+#define CHRONE(...) auto chrones_stopwatch##__line__ = chrones::heavy_stopwatch( \
   &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
-#define MINICHRONE(...) chrones::light_stopwatch chrones_stopwatch##__line__( \
+#define MINICHRONE(...) auto chrones_stopwatch##__line__ = chrones::light_stopwatch( \
   &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 

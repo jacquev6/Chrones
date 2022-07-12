@@ -91,8 +91,31 @@ int MockInfo::process_id = 0;
 std::size_t MockInfo::thread_id = 0;
 
 typedef chrones::heavy_stopwatch_tmpl<MockInfo> heavy_stopwatch;
-typedef chrones::light_stopwatch_tmpl<MockInfo> light_stopwatch;
 typedef chrones::coordinator_tmpl<MockInfo> coordinator;
+
+inline chrones::plain_light_stopwatch_tmpl<MockInfo> light_stopwatch(
+  coordinator* coordinator,
+  const std::string& function
+) {
+  return chrones::plain_light_stopwatch_tmpl<MockInfo>(coordinator, function);
+}
+
+inline chrones::labelled_light_stopwatch_tmpl<MockInfo> light_stopwatch(
+  coordinator* coordinator,
+  const std::string& function,
+  const std::string& label
+) {
+  return chrones::labelled_light_stopwatch_tmpl<MockInfo>(coordinator, function, label);
+}
+
+inline chrones::labelled_light_stopwatch_tmpl<MockInfo> light_stopwatch(
+  coordinator* coordinator,
+  const std::string& function,
+  const std::string& label,
+  int
+) {
+  return chrones::labelled_light_stopwatch_tmpl<MockInfo>(coordinator, function, label);
+}
 
 
 TEST(ChronesTest, BasicHeavyOnce) {
@@ -105,7 +128,7 @@ TEST(ChronesTest, BasicHeavyOnce) {
     {
       coordinator c(oss);
       {
-        heavy_stopwatch t(&c, "f");
+        auto t = heavy_stopwatch(&c, "f");
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -128,7 +151,7 @@ TEST(ChronesTest, BasicLightOnce) {
     {
       coordinator c(oss);
       {
-        light_stopwatch t(&c, "f");
+        auto t = light_stopwatch(&c, "f");
         MockInfo::time = 694;
       }
       MockInfo::time = 710;
@@ -150,7 +173,7 @@ TEST(ChronesTest, BasicHeavyFewTimes) {
     coordinator c(oss);
     for (int i = 1; i != 4; ++i) {
       MockInfo::time += i * 4;
-      heavy_stopwatch t(&c, "f", "label", i);
+      auto t = heavy_stopwatch(&c, "f", "label", i);
       MockInfo::time += i * 3;
     }
     MockInfo::time = 200;
@@ -174,7 +197,7 @@ TEST(ChronesTest, FlushedBeforeCoordinatorDestruction) {
 
   coordinator c(oss);
   {
-    heavy_stopwatch t(&c, "f");
+    auto t = heavy_stopwatch(&c, "f");
   }
 
   // Just wait
@@ -197,7 +220,7 @@ TEST(ChronesTest, BasicLightFewTimes) {
     coordinator c(oss);
     for (int i = 1; i != 4; ++i) {
       MockInfo::time += i * 4;
-      light_stopwatch t(&c, "f", boost::none, i);
+      auto t = light_stopwatch(&c, "f", "l", i);
       MockInfo::time += i * 3;
     }
     MockInfo::time = 200;
@@ -205,7 +228,7 @@ TEST(ChronesTest, BasicLightFewTimes) {
 
   ASSERT_EQ(
     oss.str(),
-    "8,1,200,sw_summary,\"f\",-,3,6,2,3,6,9,18\n");
+    "8,1,200,sw_summary,\"f\",\"l\",3,6,2,3,6,9,18\n");
 }
 
 TEST(ChronesTest, LabelWithQuotes) {
@@ -216,7 +239,7 @@ TEST(ChronesTest, LabelWithQuotes) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, "f", "a 'label' with \"quotes\"");
+    auto t = heavy_stopwatch(&c, "f", "a 'label' with \"quotes\"");
   }
 
   ASSERT_EQ(
@@ -233,7 +256,7 @@ TEST(ChronesTest, Index) {
 
   {
     coordinator c(oss);
-    heavy_stopwatch t(&c, "f", "label", 42);
+    auto t = heavy_stopwatch(&c, "f", "label", 42);
   }
 
   ASSERT_EQ(
