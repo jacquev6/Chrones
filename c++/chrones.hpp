@@ -14,22 +14,24 @@
 
 #else
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>  // NOLINT(build/c++11)
+#include <cmath>
+#include <cstdint>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <thread>  // NOLINT(build/c++11)
 #include <tuple>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <boost/thread.hpp>
 #include <boost/optional.hpp>
-
-#include "stream-statistics.hpp"
 
 
 // The Chrones library instruments your code to measure the time taken by code blocks.
@@ -89,6 +91,75 @@
 // - "undefined reference to chrones::<<anything else>>": double-check you linked with chrones.o
 
 namespace chrones {
+
+class StreamStatistics {
+ public:
+  StreamStatistics() :
+    _count(0),
+    _min(std::numeric_limits<float>::max()),
+    _max(-std::numeric_limits<float>::max()),
+    _sum(),
+    _m2n(),
+    _samples()
+  {}
+
+ public:
+  void update(const float x) {
+    // Trivial updates
+    _min = std::min(_min, x);
+    _max = std::max(_max, x);
+    _samples.push_back(x);
+
+    // Almost trivial updates but numerically unstable, so we use larger types
+    // Variance: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+    const float delta_1 = x - mean();
+    // Accumulate in double
+    _sum += x;
+    // Count in uint64
+    _count += 1;
+    if (_count >= 2) {
+      const float delta_2 = x - mean();
+      // Accumulate in double
+      _m2n += delta_1 * delta_2;
+    }
+  }
+
+ public:
+  uint64_t count() const { return _count; }
+
+  float mean() const { return _sum / _count; }
+
+  float variance() const { return _m2n / _count; }
+
+  float standard_deviation() const { return std::sqrt(variance()); }
+
+  float min() const { return _min; }
+
+  float median() const {
+    if (_samples.empty()) {
+      return NAN;
+    } else {
+      auto nth = _samples.begin() + _samples.size() / 2;
+      std::nth_element(_samples.begin(), nth, _samples.end());
+      return *nth;
+    }
+  }
+
+  float max() const { return _max; }
+
+  float sum() const { return _sum; }
+
+ private:
+  uint64_t _count;
+  float _min;
+  float _max;
+  double _sum;
+  double _m2n;
+
+  // Temporary, for median, until we
+  // @todo implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
+  mutable std::vector<float> _samples;
+};
 
 // The default CSV dialect used by Python's `csv` module interprets two double-quote characters
 // as a single one inside a double-quoted string. This function replaces each double-quote

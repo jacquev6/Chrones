@@ -40,20 +40,6 @@ debug-inventory:
 .PHONY: compile
 compile: $(object_files)
 
-#######################
-# Manual dependencies #
-#######################
-
-# Not worth automating with `g++ -M`: too simple
-
-build/c++/stream-statistics-tests.o: c++/stream-statistics.hpp
-build/c++/stream-statistics-tests:
-
-build/c++/chrones-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
-build/c++/chrones-tests:
-build/c++/chrones-perf-tests.o: c++/chrones.hpp c++/stream-statistics.hpp
-build/c++/chrones-perf-tests:
-
 ########
 # Lint #
 ########
@@ -107,7 +93,7 @@ build/%-tests: build/%-tests.o
 # Compilation #
 ###############
 
-build/%.o: %.cpp
+build/%.o: %.cpp c++/chrones.hpp
 	@echo "g++  -c $< -o $@"
 	@mkdir -p $(dir $@)
 	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -Wsuggest-override -Weffc++ -g -O3 -fopenmp -c $< -o $@

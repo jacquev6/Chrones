@@ -34,7 +34,7 @@ Get started
 C++
 ---
 
-Add `c++/chrones.hpp` and `c++/stream-statistics.hpp` in your include path.
+Add `c++/chrones.hpp` in your include path.
 
 In your main source file, add:
 

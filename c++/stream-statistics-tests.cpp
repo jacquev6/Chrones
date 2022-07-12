@@ -1,10 +1,12 @@
 // Copyright 2022 Laurent Cabaret
 // Copyright 2022 Vincent Jacques
 
-#include "stream-statistics.hpp"
-
 #include <gtest/gtest.h>
 
+#include "chrones.hpp"
+
+
+using chrones::StreamStatistics;
 
 TEST(StreamStatisticsTest, MaxOnNegativeElement) {
   StreamStatistics stats;
