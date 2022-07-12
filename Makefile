@@ -22,7 +22,7 @@ object_files := $(patsubst %.cpp,build/%.o,$(c++_source_files))
 
 # Sentinel files
 cpplint_sentinel_files := $(patsubst %,build/%.cpplint.ok,$(c++_header_files) $(c++_source_files))
-test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files)) build/chrones-report.py.tests.ok
+test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files)) build/chrones-report.py.tests.ok c++/chrones-perf-tests.log
 
 .PHONY: debug-inventory
 debug-inventory:
@@ -79,7 +79,7 @@ build/%-tests.cpp.tests.ok: build/%-tests
 	@echo "$<"
 	@mkdir -p $(dir $@)
 	@rm -f build/$*-tests.*.chrones.csv
-	@cd build/c++ && OMP_NUM_THREADS=4 ../../$<
+	@cd build/c++ && OMP_NUM_THREADS=4 ../../$< 2>&1 | tee ../../$@.log
 	@touch $@
 
 build/chrones-report.py.tests.ok: chrones-report.py build/c++/chrones-tests.cpp.tests.ok c++/chrones-tests.py
@@ -89,6 +89,9 @@ build/chrones-report.py.tests.ok: chrones-report.py build/c++/chrones-tests.cpp.
 	@./chrones-report.py summaries build/c++/chrones-tests.*.chrones.csv >build/c++/chrones-tests.chrones.summaries.json
 	@c++/chrones-tests.py build/c++/chrones-tests.chrones.summaries.json
 	@touch $@
+
+c++/chrones-perf-tests.log: build/c++/chrones-perf-tests.cpp.tests.ok
+	@cp $^.log $@
 
 ########
 # Link #

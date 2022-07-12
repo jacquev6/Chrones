@@ -79,13 +79,6 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-// 0.340938s
-// 0.306131s
-// 0.317522s
-// 0.440938s
-// 0.4058s
-// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5290 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -100,13 +93,6 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-// 0.267886s
-// 0.395312s
-// 0.447362s
-// 0.32896s
-// 0.342768s
-// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5372 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -121,13 +107,6 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-// 0.24581s
-// 0.406601s
-// 0.284519s
-// 0.320636s
-// 0.326781s
-// [       OK ] HeavyChronesPerformanceTest.SequentialFull (5260 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   omp_set_num_threads(THREADS);
@@ -157,13 +136,6 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
     }
   }
 }
-// [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-// 0.63508s 0.635081s 0.635081s 0.635087s 0.635127s 0.635227s 0.635224s 0.635235s
-// 0.573015s 0.573015s 0.573025s 0.573013s 0.573023s 0.573067s 0.573065s 0.573118s
-// 0.558125s 0.558132s 0.558125s 0.558173s 0.558125s 0.558251s 0.558252s 0.558251s
-// 0.586375s 0.586382s 0.586383s 0.586375s 0.586378s 0.58645s 0.58642s 0.586375s
-// 0.56918s 0.56918s 0.56919s 0.569185s 0.569188s 0.569227s 0.56928s 0.569284s
-// [       OK ] HeavyChronesPerformanceTest.ParallelFull (5863 ms)
 
 
 class LightChronesPerformanceTest : public testing::Test {
@@ -205,13 +177,6 @@ TEST_F(LightChronesPerformanceTest, SequentialPlain) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] LightChronesPerformanceTest.SequentialPlain
-// 0.106611s
-// 0.106607s
-// 0.107645s
-// 0.106317s
-// 0.108013s
-// [       OK ] LightChronesPerformanceTest.SequentialPlain (626 ms)
 
 TEST_F(LightChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -226,13 +191,6 @@ TEST_F(LightChronesPerformanceTest, SequentialLabelled) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] LightChronesPerformanceTest.SequentialLabelled
-// 0.127809s
-// 0.12759s
-// 0.13071s
-// 0.127654s
-// 0.130021s
-// [       OK ] LightChronesPerformanceTest.SequentialLabelled (741 ms)
 
 TEST_F(LightChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -247,13 +205,6 @@ TEST_F(LightChronesPerformanceTest, SequentialFull) {
     EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
-// [ RUN      ] LightChronesPerformanceTest.SequentialFull
-// 0.135067s
-// 0.127967s
-// 0.12754s
-// 0.126688s
-// 0.128905s
-// [       OK ] LightChronesPerformanceTest.SequentialFull (731 ms)
 
 TEST_F(LightChronesPerformanceTest, ParallelFull) {
   omp_set_num_threads(THREADS);
@@ -283,10 +234,3 @@ TEST_F(LightChronesPerformanceTest, ParallelFull) {
     }
   }
 }
-// [ RUN      ] LightChronesPerformanceTest.ParallelFull
-// 0.627004s 0.627009s 0.627074s 0.6271s 0.627005s 0.627053s 0.627123s 0.627139s
-// 0.473635s 0.473635s 0.473636s 0.473635s 0.473638s 0.47364s 0.473681s 0.473677s
-// 0.502704s 0.502707s 0.502711s 0.502705s 0.502704s 0.502718s 0.502705s 0.50275s
-// 0.464927s 0.464932s 0.464931s 0.464927s 0.464924s 0.464927s 0.464927s 0.464933s
-// 0.461055s 0.461057s 0.461057s 0.461056s 0.461057s 0.46106s 0.461101s 0.461174s
-// [       OK ] LightChronesPerformanceTest.ParallelFull (2643 ms)
