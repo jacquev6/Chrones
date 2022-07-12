@@ -143,21 +143,22 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
 }
 
 
+int get_summary_count(const std::string& s) {
+  std::string::size_type end = std::string::npos;
+  for (int k = 0; k != 6; ++k) {
+    end = s.rfind(',', end - 1);
+  }
+  std::string::size_type begin = s.rfind(',', end - 1) + 1;
+  return std::stoi(s.substr(begin, end - begin));
+}
+
 class LightChronesPerformanceTest : public testing::Test {
  protected:
   LightChronesPerformanceTest() : oss(), c(new coordinator(oss)) {}
 
   ~LightChronesPerformanceTest() {
     delete c;
-    const std::string s = oss.str();
-    std::string::size_type end = std::string::npos;
-    for (int k = 0; k != 6; ++k) {
-      end = s.rfind(',', end - 1);
-    }
-    std::string::size_type begin = s.rfind(',', end - 1) + 1;
-    EXPECT_EQ(
-      s.substr(begin, end - begin),
-      std::to_string(STOPWATCHES_PER_REPETITION * REPETITIONS));
+    EXPECT_EQ(get_summary_count(oss.str()), STOPWATCHES_PER_REPETITION * REPETITIONS);
   }
 
   LightChronesPerformanceTest(const LightChronesPerformanceTest&) = delete;
@@ -237,5 +238,52 @@ TEST_F(LightChronesPerformanceTest, ParallelFull) {
       std::cerr << std::endl;
       EXPECT_LE(d, std::chrono::seconds(1));
     }
+  }
+}
+
+TEST(LightChronesPerformanceTest2, SeveralParallel) {
+  std::ostringstream oss;
+  {
+    coordinator c(oss);
+
+    omp_set_num_threads(THREADS);
+    ASSERT_EQ(omp_get_num_threads(), 1);
+
+    #pragma omp parallel
+    {
+      EXPECT_EQ(omp_get_num_threads(), THREADS);
+
+      for (int j = 0; j != REPETITIONS; ++j) {
+        Timer timer;
+
+        static_assert(STOPWATCHES_PER_REPETITION % (THREADS * 5) == 0, "");
+        for (int i = 0; i != STOPWATCHES_PER_REPETITION / (THREADS * 5); ++i) {
+          auto t1 = light_stopwatch(&c, __PRETTY_FUNCTION__, "t1", i);
+          auto t2 = light_stopwatch(&c, __PRETTY_FUNCTION__, "t2", i);
+          auto t3 = light_stopwatch(&c, __PRETTY_FUNCTION__, "t3", i);
+          auto t4 = light_stopwatch(&c, __PRETTY_FUNCTION__, "t4", i);
+          auto t5 = light_stopwatch(&c, __PRETTY_FUNCTION__, "t5", i);
+        }
+
+        #pragma omp barrier
+        const auto d = timer.duration();
+        #pragma omp critical
+        {
+          std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s ";
+        }
+        #pragma omp barrier
+        #pragma omp master
+        std::cerr << std::endl;
+        EXPECT_LE(d, std::chrono::seconds(1));
+      }
+    }
+  }
+
+  const std::string s = oss.str();
+  std::string::size_type begin = 0;
+  for (int k = 0; k != 5; ++k) {
+    const std::string::size_type end = s.find('\n', begin + 1);
+    EXPECT_EQ(get_summary_count(s.substr(begin, end - begin + 1)), REPETITIONS * STOPWATCHES_PER_REPETITION / 5);
+    begin = end + 1;
   }
 }
