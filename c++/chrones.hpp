@@ -30,8 +30,8 @@
 #include <utility>
 #include <vector>
 
-#include <boost/thread.hpp>
 #include <boost/optional.hpp>
+#include <boost/thread.hpp>
 
 
 // The Chrones library instruments your code to measure the time taken by code blocks.
