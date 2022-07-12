@@ -1,6 +1,13 @@
 # Copyright 2020-2022 Laurent Cabaret
 # Copyright 2020-2022 Vincent Jacques
 
+# https://stackoverflow.com/a/52603343/905845
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --no-builtin-variables
+
+# https://stackoverflow.com/a/589300/905845
+SHELL := /bin/bash -o pipefail -o errexit
+
 ############################
 # Default top-level target #
 ############################
