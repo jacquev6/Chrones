@@ -92,6 +92,10 @@
 
 namespace chrones {
 
+////////////////////////////////////////////////////////////////////////////////
+// Base tools
+////////////////////////////////////////////////////////////////////////////////
+
 class StreamStatistics {
  public:
   StreamStatistics() :
@@ -173,6 +177,10 @@ inline std::string quote_for_csv(std::string s) {
 
   return "\"" + s + "\"";
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Core: coordinator
+////////////////////////////////////////////////////////////////////////////////
 
 class Event {
  public:
@@ -348,7 +356,7 @@ class coordinator_tmpl {
 
  public:
   // @todo Add logs of level TRACE
-  int64_t start_heavy_stopwatch(
+  void start_heavy_stopwatch(
     const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
@@ -356,10 +364,9 @@ class coordinator_tmpl {
       Info::get_thread_id(),
       start_time,
       function));
-    return start_time;
   }
 
-  int64_t start_heavy_stopwatch(
+  void start_heavy_stopwatch(
     const std::string& function,
     const std::string& label
   ) {
@@ -369,10 +376,9 @@ class coordinator_tmpl {
       start_time,
       function,
       label));
-    return start_time;
   }
 
-  int64_t start_heavy_stopwatch(
+  void start_heavy_stopwatch(
     const std::string& function,
     const std::string& label,
     const int index
@@ -384,7 +390,6 @@ class coordinator_tmpl {
       function,
       label,
       index));
-    return start_time;
   }
 
   void stop_heavy_stopwatch() {
@@ -496,6 +501,10 @@ class coordinator_tmpl {
   boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Interface: stopwatches and macros
+////////////////////////////////////////////////////////////////////////////////
+
 template<typename Info>
 class heavy_stopwatch_tmpl {
  public:
@@ -503,7 +512,7 @@ class heavy_stopwatch_tmpl {
       coordinator_tmpl<Info>* coordinator,
       const std::string& function) :
         _coordinator(coordinator) {
-    coordinator->start_heavy_stopwatch(function);
+    _coordinator->start_heavy_stopwatch(function);
   }
 
   heavy_stopwatch_tmpl(
@@ -511,7 +520,7 @@ class heavy_stopwatch_tmpl {
       const std::string& function,
       const std::string& label) :
         _coordinator(coordinator) {
-    coordinator->start_heavy_stopwatch(function, label);
+    _coordinator->start_heavy_stopwatch(function, label);
   }
 
   heavy_stopwatch_tmpl(
@@ -520,7 +529,7 @@ class heavy_stopwatch_tmpl {
       const std::string& label,
       const int index) :
         _coordinator(coordinator) {
-    coordinator->start_heavy_stopwatch(function, label, index);
+    _coordinator->start_heavy_stopwatch(function, label, index);
   }
 
   ~heavy_stopwatch_tmpl() {

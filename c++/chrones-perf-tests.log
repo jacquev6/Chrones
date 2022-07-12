@@ -3,66 +3,66 @@ Running main() from /googletest-release-1.11.0/googletest/src/gtest_main.cc
 [----------] Global test environment set-up.
 [----------] 4 tests from HeavyChronesPerformanceTest
 [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-0.37304s
-0.311363s
-0.342485s
-0.530271s
-0.345765s
-[       OK ] HeavyChronesPerformanceTest.SequentialPlain (5198 ms)
+0.326218s
+0.326541s
+0.331513s
+0.445087s
+0.444154s
+[       OK ] HeavyChronesPerformanceTest.SequentialPlain (5509 ms)
 [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-0.231798s
-0.38879s
-0.447664s
-0.354096s
-0.330529s
-[       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5477 ms)
+0.205058s
+0.228587s
+0.400766s
+0.279284s
+0.329177s
+[       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5198 ms)
 [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-0.240898s
-0.251042s
-0.469886s
-0.313628s
-0.331856s
-[       OK ] HeavyChronesPerformanceTest.SequentialFull (5513 ms)
+0.235431s
+0.223804s
+0.374705s
+0.263062s
+0.333475s
+[       OK ] HeavyChronesPerformanceTest.SequentialFull (5003 ms)
 [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-0.652004s 0.652012s 0.652014s 0.652007s 0.652066s 0.652102s 0.652102s 0.652103s 
-0.59959s 0.599604s 0.59959s 0.59959s 0.599641s 0.599602s 0.599712s 0.599713s 
-0.614113s 0.614127s 0.614113s 0.614165s 0.614227s 0.61424s 0.61424s 0.614244s 
-0.644189s 0.644198s 0.644195s 0.644198s 0.644202s 0.644194s 0.644239s 0.644291s 
-0.596843s 0.596855s 0.596856s 0.596857s 0.596892s 0.596948s 0.59695s 0.596919s 
-[       OK ] HeavyChronesPerformanceTest.ParallelFull (6047 ms)
-[----------] 4 tests from HeavyChronesPerformanceTest (22237 ms total)
+0.601549s 0.601549s 0.601549s 0.601556s 0.601599s 0.601601s 0.601645s 0.601649s 
+0.606512s 0.606512s 0.606512s 0.606512s 0.606561s 0.606515s 0.606607s 0.606617s 
+0.581729s 0.581729s 0.581737s 0.581729s 0.581739s 0.581792s 0.581804s 0.581804s 
+0.558393s 0.558401s 0.558399s 0.558393s 0.558475s 0.558444s 0.558474s 0.558475s 
+0.655282s 0.655282s 0.655282s 0.655288s 0.655327s 0.655421s 0.655421s 0.655421s 
+[       OK ] HeavyChronesPerformanceTest.ParallelFull (6101 ms)
+[----------] 4 tests from HeavyChronesPerformanceTest (21812 ms total)
 
 [----------] 4 tests from LightChronesPerformanceTest
 [ RUN      ] LightChronesPerformanceTest.SequentialPlain
-0.121886s
-0.122053s
-0.120447s
-0.118913s
-0.121485s
-[       OK ] LightChronesPerformanceTest.SequentialPlain (736 ms)
+0.116066s
+0.114887s
+0.112128s
+0.110844s
+0.114644s
+[       OK ] LightChronesPerformanceTest.SequentialPlain (629 ms)
 [ RUN      ] LightChronesPerformanceTest.SequentialLabelled
-0.132784s
-0.131691s
-0.134135s
-0.133914s
-0.134781s
-[       OK ] LightChronesPerformanceTest.SequentialLabelled (741 ms)
+0.139059s
+0.139126s
+0.140121s
+0.138797s
+0.1403s
+[       OK ] LightChronesPerformanceTest.SequentialLabelled (732 ms)
 [ RUN      ] LightChronesPerformanceTest.SequentialFull
-0.13279s
-0.133161s
-0.132083s
-0.130817s
-0.133021s
-[       OK ] LightChronesPerformanceTest.SequentialFull (740 ms)
+0.139391s
+0.139782s
+0.141945s
+0.139918s
+0.141662s
+[       OK ] LightChronesPerformanceTest.SequentialFull (837 ms)
 [ RUN      ] LightChronesPerformanceTest.ParallelFull
-0.68448s 0.684485s 0.684553s 0.684479s 0.684529s 0.684528s 0.68458s 0.68458s 
-0.492805s 0.49281s 0.492804s 0.492805s 0.49285s 0.492924s 0.492924s 0.492928s 
-0.515937s 0.515937s 0.515941s 0.515937s 0.515987s 0.515987s 0.515986s 0.516041s 
-0.500434s 0.50044s 0.500435s 0.500435s 0.500481s 0.500574s 0.500574s 0.50058s 
-0.490919s 0.49092s 0.49092s 0.49092s 0.49092s 0.490922s 0.490964s 0.491014s 
-[       OK ] LightChronesPerformanceTest.ParallelFull (2743 ms)
-[----------] 4 tests from LightChronesPerformanceTest (4962 ms total)
+0.661144s 0.661088s 0.661059s 0.661137s 0.661067s 0.661171s 0.661169s 0.661168s 
+0.443333s 0.443332s 0.443333s 0.443333s 0.443333s 0.443335s 0.443381s 0.443381s 
+0.493732s 0.493744s 0.493784s 0.493785s 0.493845s 0.493846s 0.493856s 0.493846s 
+0.451402s 0.451407s 0.451407s 0.451403s 0.451449s 0.451409s 0.451403s 0.451522s 
+0.455271s 0.455277s 0.455271s 0.455273s 0.455271s 0.455271s 0.455317s 0.455271s 
+[       OK ] LightChronesPerformanceTest.ParallelFull (2653 ms)
+[----------] 4 tests from LightChronesPerformanceTest (4852 ms total)
 
 [----------] Global test environment tear-down
-[==========] 8 tests from 2 test suites ran. (27199 ms total)
+[==========] 8 tests from 2 test suites ran. (26665 ms total)
 [  PASSED  ] 8 tests.

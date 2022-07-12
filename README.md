@@ -6,6 +6,7 @@ A set of tools are provided to produce human-readable reports.
 
 The ambition of Chrones is to accurately measure and report durations down to the millisecond.
 No nanoseconds in this project!
+Overhead introduced by Chrones is less than a second per million instrumented blocks.
 
 How it works
 ============
@@ -21,7 +22,7 @@ That assumption allows re-creating the call stack at any point in the program's 
 Languages supported
 ===================
 
-C++: full support of mono-threaded programs
+C++: full support of multi-threaded programs
 
 Bash: full support of single-processed scripts
 
@@ -70,7 +71,7 @@ If you need to instrument the successive iteration of a loop, you can pass a lab
         }
     }
 
-Compile, link and run your program to generate the `.csv` file.
+Build and run your program to generate the `.csv` file.
 See "reporting" below to generate reports.
 
 If you compile `chrones.hpp` with `-DNO_CHRONES`, both macros expand to nothing, effectively removing Chrones from your program.
@@ -96,14 +97,14 @@ Call `chrones_start_stopwatch` (resp. `chrones_stop_stopwatch`) at the beginning
 Run your script to generate the `.csv` file.
 See "reporting" below to generate reports.
 
-@todo Support the NO_CHRONES functionality?
+<!-- @todo Support the NO_CHRONES functionality? -->
 
 Reporting
 ---------
 
-You should now have a `name_of_your_program.chrones.csv` file.
+You should now have a `name_of_your_program.chrones.*.csv` file.
 
-Running `chrones-report.py summaries name_of_your_program.chrones.csv` will print out a "summaries" `.json` document.
+Running `chrones-report.py summaries name_of_your_program.chrones.*.csv` will print out a "summaries" `.json` document.
 
 See `chrones-report.py --help` for details.
 
