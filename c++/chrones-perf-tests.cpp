@@ -76,12 +76,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-// 0.63601s
-// 0.572634s
-// 0.650765s
-// 0.506728s
-// 0.646034s
-// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (4707 ms)
+// 0.586311s
+// 0.546517s
+// 0.614285s
+// 0.491795s
+// 0.613587s
+// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5667 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -93,20 +93,16 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
 
     const auto d = timer.duration();
     std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s" << std::endl;
-    // @todo Understand why the first iteration is consistently longer than others
-    // Note: this happens *only* if another test is run before this one
-    if (j >= 1) {
-      EXPECT_LE(d, std::chrono::seconds(1));
-    }
+    EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-// 0.961256s
-// 0.521277s
-// 0.451055s
-// 0.563084s
-// 0.532272s
-// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5206 ms)
+// 0.473203s
+// 0.481833s
+// 0.431901s
+// 0.545248s
+// 0.501991s
+// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5748 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -118,20 +114,16 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
 
     const auto d = timer.duration();
     std::cerr << std::chrono::nanoseconds(d).count() / 1e9 << "s" << std::endl;
-    // @todo Understand why the first iteration is consistently longer than others
-    // Note: this happens *only* if another test is run before this one
-    if (j >= 1) {
-      EXPECT_LE(d, std::chrono::seconds(1));
-    }
+    EXPECT_LE(d, std::chrono::seconds(1));
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-// 1.45723s
-// 0.704897s
-// 0.923529s
-// 0.473836s
-// 0.90372s
-// [       OK ] HeavyChronesPerformanceTest.SequentialFull (7033 ms)
+// 0.764418s
+// 0.78549s
+// 0.874056s
+// 0.585277s
+// 0.850266s
+// [       OK ] HeavyChronesPerformanceTest.SequentialFull (7370 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   omp_set_num_threads(THREADS);
@@ -162,9 +154,9 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-// 0.804436s 0.804436s 0.804443s 0.804436s 0.804484s 0.804447s 0.804533s 0.804534s
-// 0.804883s 0.804889s 0.804891s 0.804889s 0.804888s 0.804928s 0.804888s 0.804998s
-// 0.821919s 0.822003s 0.822003s 0.821998s 0.822004s 0.822003s 0.822004s 0.822014s
-// 0.816145s 0.816144s 0.816154s 0.816194s 0.816192s 0.816281s 0.816281s 0.816282s
-// 0.818835s 0.818839s 0.818835s 0.818835s 0.81884s 0.818835s 0.818841s 0.818913s
-// [       OK ] HeavyChronesPerformanceTest.ParallelFull (7375 ms)
+// 0.833734s 0.833744s 0.833734s 0.833734s 0.833807s 0.833812s 0.833809s 0.833819s
+// 0.82078s 0.820791s 0.820788s 0.820793s 0.820908s 0.820908s 0.820908s 0.82092s
+// 0.800548s 0.800548s 0.800548s 0.800558s 0.800556s 0.800596s 0.800548s 0.800677s
+// 0.835826s 0.835826s 0.835833s 0.835816s 0.835874s 0.835947s 0.835948s 0.835947s
+// 0.779314s 0.779314s 0.779326s 0.779324s 0.779372s 0.77943s 0.779431s 0.779431s
+// [       OK ] HeavyChronesPerformanceTest.ParallelFull (7582 ms)
