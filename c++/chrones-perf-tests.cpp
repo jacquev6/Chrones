@@ -71,7 +71,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      heavy_stopwatch t(c, __PRETTY_FUNCTION__);
+      heavy_stopwatch(c, __PRETTY_FUNCTION__);
     }
 
     const auto d = timer.duration();
@@ -85,7 +85,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label");
+      heavy_stopwatch(c, __PRETTY_FUNCTION__, "label");
     }
 
     const auto d = timer.duration();
@@ -99,7 +99,7 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
+      heavy_stopwatch(c, __PRETTY_FUNCTION__, "label", i);
     }
 
     const auto d = timer.duration();
@@ -120,7 +120,7 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
       Timer timer;
 
       for (int i = 0; i != STOPWATCHES_PER_REPETITION / THREADS; ++i) {
-        heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
+        heavy_stopwatch(c, __PRETTY_FUNCTION__, "label", i);
       }
 
       #pragma omp barrier
@@ -169,7 +169,7 @@ TEST_F(LightChronesPerformanceTest, SequentialPlain) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      light_stopwatch t(c, __PRETTY_FUNCTION__);
+      light_stopwatch(c, __PRETTY_FUNCTION__);
     }
 
     const auto d = timer.duration();
@@ -183,7 +183,7 @@ TEST_F(LightChronesPerformanceTest, SequentialLabelled) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      light_stopwatch t(c, __PRETTY_FUNCTION__, "label");
+      light_stopwatch(c, __PRETTY_FUNCTION__, "label");
     }
 
     const auto d = timer.duration();
@@ -197,7 +197,7 @@ TEST_F(LightChronesPerformanceTest, SequentialFull) {
     Timer timer;
 
     for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
-      light_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
+      light_stopwatch(c, __PRETTY_FUNCTION__, "label", i);
     }
 
     const auto d = timer.duration();
@@ -218,7 +218,7 @@ TEST_F(LightChronesPerformanceTest, ParallelFull) {
       Timer timer;
 
       for (int i = 0; i != STOPWATCHES_PER_REPETITION / THREADS; ++i) {
-        light_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
+        light_stopwatch(c, __PRETTY_FUNCTION__, "label", i);
       }
 
       #pragma omp barrier
