@@ -178,6 +178,11 @@ inline std::string quote_for_csv(std::string s) {
   return "\"" + s + "\"";
 }
 
+template<class T, class... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Core: coordinator
 ////////////////////////////////////////////////////////////////////////////////
@@ -360,10 +365,10 @@ class coordinator_tmpl {
     const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(std::make_shared<StopwatchStartPlainEvent>(
+    add_event(std::move(make_unique<StopwatchStartPlainEvent>(
       Info::get_thread_id(),
       start_time,
-      function));
+      function)));
   }
 
   void start_heavy_stopwatch(
@@ -371,11 +376,11 @@ class coordinator_tmpl {
     const std::string& label
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(std::make_shared<StopwatchStartLabelledEvent>(
+    add_event(std::move(make_unique<StopwatchStartLabelledEvent>(
       Info::get_thread_id(),
       start_time,
       function,
-      label));
+      label)));
   }
 
   void start_heavy_stopwatch(
@@ -384,19 +389,19 @@ class coordinator_tmpl {
     const int index
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(std::make_shared<StopwatchStartFullEvent>(
+    add_event(std::move(make_unique<StopwatchStartFullEvent>(
       Info::get_thread_id(),
       start_time,
       function,
       label,
-      index));
+      index)));
   }
 
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
-    add_event(std::make_shared<StopwatchStopEvent>(
+    add_event(std::move(make_unique<StopwatchStopEvent>(
       Info::get_thread_id(),
-      stop_time));
+      stop_time)));
   }
 
   int64_t start_light_stopwatch() {
@@ -429,7 +434,7 @@ class coordinator_tmpl {
       std::string function;
       boost::optional<std::string> label;
       std::tie(function, label) = stat.first;
-      add_event(std::make_shared<StopwatchSummaryEvent>(
+      add_event(std::move(make_unique<StopwatchSummaryEvent>(
         thread_id,
         stop_time,
         function,
@@ -440,7 +445,7 @@ class coordinator_tmpl {
         stat.second.min(),
         stat.second.median(),
         stat.second.max(),
-        stat.second.sum()));
+        stat.second.sum())));
     }
   }
 
@@ -452,9 +457,9 @@ class coordinator_tmpl {
     _statistics[std::make_tuple(function, label)].update(duration);
   }
 
-  void add_event(std::shared_ptr<Event> event) {
+  void add_event(std::unique_ptr<Event> event) {
     boost::lock_guard<boost::mutex> guard(_events_mutex);
-    _events.push_back(event);
+    _events.push_back(std::move(event));
   }
 
   void work() {
@@ -467,7 +472,7 @@ class coordinator_tmpl {
   }
 
   void flush_events() {
-    std::vector<std::shared_ptr<Event>> events;
+    std::vector<std::unique_ptr<Event>> events;
     {
       boost::lock_guard<boost::mutex> guard(_events_mutex);
       if (_events.empty()) {
@@ -478,7 +483,7 @@ class coordinator_tmpl {
 
     const int process_id = Info::get_process_id();
 
-    for (auto event : events) {
+    for (auto& event : events) {
       _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
     }
   }
@@ -486,7 +491,7 @@ class coordinator_tmpl {
  private:
   std::ostream& _stream;
 
-  std::vector<std::shared_ptr<Event>> _events;
+  std::vector<std::unique_ptr<Event>> _events;
   boost::mutex _events_mutex;
 
   std::map<
