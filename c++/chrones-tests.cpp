@@ -166,6 +166,27 @@ TEST(ChronesTest, BasicHeavyFewTimes) {
     "8,1,164,sw_stop\n");
 }
 
+TEST(ChronesTest, FlushedBeforeCoordinatorDestruction) {
+  std::ostringstream oss;
+  MockInfo::time = 0;
+  MockInfo::process_id = 0;
+  MockInfo::thread_id = 0;
+
+  coordinator c(oss);
+  {
+    heavy_stopwatch t(&c, "f");
+  }
+
+  // Just wait
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  // Data arrives in oss *before* c in destroyed
+  ASSERT_EQ(
+    oss.str(),
+    "0,0,0,sw_start,\"f\",-,-\n"
+    "0,0,0,sw_stop\n");
+}
+
 TEST(ChronesTest, BasicLightFewTimes) {
   std::ostringstream oss;
   MockInfo::time = 122;
