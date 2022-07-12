@@ -15,7 +15,10 @@
 using chrones::coordinator;
 using chrones::heavy_stopwatch;
 
-#define MILLION 1000000
+#define REPETITIONS 5
+#define STOPWATCHES_PER_REPETITION 1000000
+#define THREADS 8
+static_assert(STOPWATCHES_PER_REPETITION % THREADS == 0, "THREADS must divide STOPWATCHES_PER_REPETITION to create the same number of stopwatches on each thread");
 
 
 // Note: 'EXPECT_LE's that compare a duration measured during the test
@@ -50,9 +53,9 @@ class HeavyChronesPerformanceTest : public testing::Test {
     const int lines = std::count(s.begin(), s.end(), '\n');
     EXPECT_EQ(
       lines,
-      5 /* repetitions */
-      * 2 /* events per stopwatch */
-      * MILLION /* number of stopwatches per repetitions */);
+      2 /* events per stopwatch */
+      * STOPWATCHES_PER_REPETITION
+      * REPETITIONS);
   }
 
   std::ostringstream oss;
@@ -60,10 +63,10 @@ class HeavyChronesPerformanceTest : public testing::Test {
 };
 
 TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
-  for (int j = 0; j != 5; ++j) {
+  for (int j = 0; j != REPETITIONS; ++j) {
     Timer timer;
 
-    for (int i = 0; i != MILLION; ++i) {
+    for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
       heavy_stopwatch t(c, __PRETTY_FUNCTION__);
     }
 
@@ -81,10 +84,10 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
 // [       OK ] HeavyChronesPerformanceTest.SequentialPlain (4707 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
-  for (int j = 0; j != 5; ++j) {
+  for (int j = 0; j != REPETITIONS; ++j) {
     Timer timer;
 
-    for (int i = 0; i != MILLION; ++i) {
+    for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
       heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label");
     }
 
@@ -106,10 +109,10 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
 // [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5206 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
-  for (int j = 0; j != 5; ++j) {
+  for (int j = 0; j != REPETITIONS; ++j) {
     Timer timer;
 
-    for (int i = 0; i != MILLION; ++i) {
+    for (int i = 0; i != STOPWATCHES_PER_REPETITION; ++i) {
       heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
     }
 
@@ -131,19 +134,17 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
 // [       OK ] HeavyChronesPerformanceTest.SequentialFull (7033 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
-  const int threads = 8;
-  ASSERT_EQ(MILLION % threads, 0);
-  omp_set_num_threads(threads);
+  omp_set_num_threads(THREADS);
   ASSERT_EQ(omp_get_num_threads(), 1);
 
   #pragma omp parallel
   {
-    EXPECT_EQ(omp_get_num_threads(), threads);
+    EXPECT_EQ(omp_get_num_threads(), THREADS);
 
-    for (int j = 0; j != 5; ++j) {
+    for (int j = 0; j != REPETITIONS; ++j) {
       Timer timer;
 
-      for (int i = 0; i != MILLION / threads; ++i) {
+      for (int i = 0; i != STOPWATCHES_PER_REPETITION / THREADS; ++i) {
         heavy_stopwatch t(c, __PRETTY_FUNCTION__, "label", i);
       }
 
