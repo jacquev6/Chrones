@@ -18,11 +18,13 @@
 #include <chrono>  // NOLINT(build/c++11)
 #include <fstream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <thread>  // NOLINT(build/c++11)
 #include <tuple>
 #include <vector>
+#include <utility>
 
 #include <boost/thread.hpp>
 #include <boost/optional.hpp>
@@ -243,17 +245,19 @@ template<typename Info>
 class coordinator_tmpl {
  public:
   explicit coordinator_tmpl(std::ostream& stream) :
-    _events(1024),  // Arbitrary initial capacity that can grow anyway
     _stream(stream),
-    _done(false),
+    _events(),
+    _events_mutex(),
     _statistics(),
     _statistics_mutex(),
+    _work_done(false),
     _worker(&coordinator_tmpl<Info>::work, this) {}
 
   ~coordinator_tmpl() {
-    add_summary_events();
-    _done = true;
+    _work_done = true;
     _worker.join();
+    add_summary_events();
+    flush_events();
   }
 
  public:
@@ -262,7 +266,7 @@ class coordinator_tmpl {
     const std::string& function
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(new StopwatchStartPlainEvent(
+    add_event(std::make_shared<StopwatchStartPlainEvent>(
       Info::get_thread_id(),
       start_time,
       function));
@@ -274,7 +278,7 @@ class coordinator_tmpl {
     const std::string& label
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(new StopwatchStartLabelledEvent(
+    add_event(std::make_shared<StopwatchStartLabelledEvent>(
       Info::get_thread_id(),
       start_time,
       function,
@@ -288,7 +292,7 @@ class coordinator_tmpl {
     const int index
   ) {
     const int64_t start_time = Info::get_time();
-    add_event(new StopwatchStartFullEvent(
+    add_event(std::make_shared<StopwatchStartFullEvent>(
       Info::get_thread_id(),
       start_time,
       function,
@@ -299,7 +303,7 @@ class coordinator_tmpl {
 
   void stop_heavy_stopwatch() {
     const int64_t stop_time = Info::get_time();
-    add_event(new StopwatchStopEvent(
+    add_event(std::make_shared<StopwatchStopEvent>(
       Info::get_thread_id(),
       stop_time));
   }
@@ -326,7 +330,7 @@ class coordinator_tmpl {
       std::string function;
       boost::optional<std::string> label;
       std::tie(function, label) = stat.first;
-      add_event(new StopwatchSummaryEvent(
+      add_event(std::make_shared<StopwatchSummaryEvent>(
         thread_id,
         stop_time,
         function,
@@ -349,48 +353,52 @@ class coordinator_tmpl {
     _statistics[std::make_tuple(function, label)].update(duration);
   }
 
-  void add_event(Event* event) {
-    _events.push(event);
+  void add_event(std::shared_ptr<Event> event) {
+    boost::lock_guard<boost::mutex> guard(_events_mutex);
+    _events.push_back(event);
   }
 
   void work() {
-    const int process_id = Info::get_process_id();
-    // There is no blocking `pop` on a boost::lockfree::queue because it would defeat its very purpose.
-    // But we only care about `push` being lock-free, so we emulate a blocking `pop` with
-    // this "poll, sleep" loop.
-    while (true) {
-      _events.consume_all([this, process_id](const Event* event) {
-        _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
-        delete event;
-      });
+    // Beware, this loop may not even be run once, if the coordinator is destroyed quickly.
+    // This is why we call 'flush_events' in the destructor after joining the '_worker'.
+    while (!_work_done) {
+      flush_events();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Avoid using 100% CPU
+    }
+  }
 
-      if (_done) {
-        break;
-      } else {
-        // Avoid using 100% CPU
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  void flush_events() {
+    std::vector<std::shared_ptr<Event>> events;
+    {
+      boost::lock_guard<boost::mutex> guard(_events_mutex);
+      if (_events.empty()) {
+        return;
       }
+      std::swap(events, _events);
+    }
+
+    const int process_id = Info::get_process_id();
+
+    for (auto event : events) {
+      _stream << process_id << ',' << *event << '\n';  // No std::endl: don't flush each line, improve performance
     }
   }
 
  private:
-  // `boost::lockfree::queue` cannot contain anything smart (see "Requirements" in
-  // https://www.boost.org/doc/libs/1_76_0/doc/html/boost/lockfree/queue.html), so we have to
-  // use plain pointers. The resources are acquired by `new XxxEvent` in this class only,
-  // and are released in the `work` method. The destructor of this class ensures this method
-  // is run to completion.
-  // A solution using a plain 'std::dequeu' synchronized using a 'boost::mutex' has been tested in commit 5fc1208.
-  // It led to worse performance than using the 'boost::lockfree::queue' and was reverted.
-  boost::lockfree::queue<const Event*> _events;
   std::ostream& _stream;
-  std::atomic_bool _done;
+
+  std::vector<std::shared_ptr<Event>> _events;
+  boost::mutex _events_mutex;
+
   std::map<
     std::tuple<std::string, boost::optional<std::string>>,
     StreamStatistics
   > _statistics;
+  boost::mutex _statistics_mutex;
+
+  std::atomic_bool _work_done;
   // Using boost::thread instead of std::thread to avoid this segmentation fault:
   // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
-  boost::mutex _statistics_mutex;
   boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 

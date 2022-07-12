@@ -80,12 +80,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialPlain) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialPlain
-// 0.586311s
-// 0.546517s
-// 0.614285s
-// 0.491795s
-// 0.613587s
-// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5667 ms)
+// 0.340938s
+// 0.306131s
+// 0.317522s
+// 0.440938s
+// 0.4058s
+// [       OK ] HeavyChronesPerformanceTest.SequentialPlain (5290 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -101,12 +101,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialLabelled) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialLabelled
-// 0.473203s
-// 0.481833s
-// 0.431901s
-// 0.545248s
-// 0.501991s
-// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5748 ms)
+// 0.267886s
+// 0.395312s
+// 0.447362s
+// 0.32896s
+// 0.342768s
+// [       OK ] HeavyChronesPerformanceTest.SequentialLabelled (5372 ms)
 
 TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -122,12 +122,12 @@ TEST_F(HeavyChronesPerformanceTest, SequentialFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.SequentialFull
-// 0.764418s
-// 0.78549s
-// 0.874056s
-// 0.585277s
-// 0.850266s
-// [       OK ] HeavyChronesPerformanceTest.SequentialFull (7370 ms)
+// 0.24581s
+// 0.406601s
+// 0.284519s
+// 0.320636s
+// 0.326781s
+// [       OK ] HeavyChronesPerformanceTest.SequentialFull (5260 ms)
 
 TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   omp_set_num_threads(THREADS);
@@ -158,12 +158,12 @@ TEST_F(HeavyChronesPerformanceTest, ParallelFull) {
   }
 }
 // [ RUN      ] HeavyChronesPerformanceTest.ParallelFull
-// 0.833734s 0.833744s 0.833734s 0.833734s 0.833807s 0.833812s 0.833809s 0.833819s
-// 0.82078s 0.820791s 0.820788s 0.820793s 0.820908s 0.820908s 0.820908s 0.82092s
-// 0.800548s 0.800548s 0.800548s 0.800558s 0.800556s 0.800596s 0.800548s 0.800677s
-// 0.835826s 0.835826s 0.835833s 0.835816s 0.835874s 0.835947s 0.835948s 0.835947s
-// 0.779314s 0.779314s 0.779326s 0.779324s 0.779372s 0.77943s 0.779431s 0.779431s
-// [       OK ] HeavyChronesPerformanceTest.ParallelFull (7582 ms)
+// 0.63508s 0.635081s 0.635081s 0.635087s 0.635127s 0.635227s 0.635224s 0.635235s
+// 0.573015s 0.573015s 0.573025s 0.573013s 0.573023s 0.573067s 0.573065s 0.573118s
+// 0.558125s 0.558132s 0.558125s 0.558173s 0.558125s 0.558251s 0.558252s 0.558251s
+// 0.586375s 0.586382s 0.586383s 0.586375s 0.586378s 0.58645s 0.58642s 0.586375s
+// 0.56918s 0.56918s 0.56919s 0.569185s 0.569188s 0.569227s 0.56928s 0.569284s
+// [       OK ] HeavyChronesPerformanceTest.ParallelFull (5863 ms)
 
 
 class LightChronesPerformanceTest : public testing::Test {
@@ -206,12 +206,12 @@ TEST_F(LightChronesPerformanceTest, SequentialPlain) {
   }
 }
 // [ RUN      ] LightChronesPerformanceTest.SequentialPlain
-// 0.12526s
-// 0.114639s
-// 0.116176s
-// 0.110057s
-// 0.120338s
-// [       OK ] LightChronesPerformanceTest.SequentialPlain (703 ms)
+// 0.106611s
+// 0.106607s
+// 0.107645s
+// 0.106317s
+// 0.108013s
+// [       OK ] LightChronesPerformanceTest.SequentialPlain (626 ms)
 
 TEST_F(LightChronesPerformanceTest, SequentialLabelled) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -227,12 +227,12 @@ TEST_F(LightChronesPerformanceTest, SequentialLabelled) {
   }
 }
 // [ RUN      ] LightChronesPerformanceTest.SequentialLabelled
-// 0.153772s
-// 0.135451s
-// 0.136786s
-// 0.132786s
-// 0.139713s
-// [       OK ] LightChronesPerformanceTest.SequentialLabelled (803 ms)
+// 0.127809s
+// 0.12759s
+// 0.13071s
+// 0.127654s
+// 0.130021s
+// [       OK ] LightChronesPerformanceTest.SequentialLabelled (741 ms)
 
 TEST_F(LightChronesPerformanceTest, SequentialFull) {
   for (int j = 0; j != REPETITIONS; ++j) {
@@ -248,12 +248,12 @@ TEST_F(LightChronesPerformanceTest, SequentialFull) {
   }
 }
 // [ RUN      ] LightChronesPerformanceTest.SequentialFull
-// 0.151602s
-// 0.133223s
-// 0.134547s
-// 0.131411s
-// 0.142129s
-// [       OK ] LightChronesPerformanceTest.SequentialFull (803 ms)
+// 0.135067s
+// 0.127967s
+// 0.12754s
+// 0.126688s
+// 0.128905s
+// [       OK ] LightChronesPerformanceTest.SequentialFull (731 ms)
 
 TEST_F(LightChronesPerformanceTest, ParallelFull) {
   omp_set_num_threads(THREADS);
@@ -284,9 +284,9 @@ TEST_F(LightChronesPerformanceTest, ParallelFull) {
   }
 }
 // [ RUN      ] LightChronesPerformanceTest.ParallelFull
-// 0.531884s 0.531885s 0.531885s 0.531892s 0.531931s 0.531893s 0.531895s 0.531994s
-// 0.512794s 0.512796s 0.512795s 0.512795s 0.512845s 0.512843s 0.512844s 0.512796s
-// 0.514089s 0.514089s 0.514089s 0.514089s 0.514092s 0.514134s 0.514204s 0.514207s
-// 0.517566s 0.517579s 0.517623s 0.517623s 0.517623s 0.51768s 0.517681s 0.517689s
-// 0.521041s 0.521038s 0.521041s 0.521045s 0.521046s 0.521085s 0.521158s 0.521158s
-// [       OK ] LightChronesPerformanceTest.ParallelFull (2704 ms)
+// 0.627004s 0.627009s 0.627074s 0.6271s 0.627005s 0.627053s 0.627123s 0.627139s
+// 0.473635s 0.473635s 0.473636s 0.473635s 0.473638s 0.47364s 0.473681s 0.473677s
+// 0.502704s 0.502707s 0.502711s 0.502705s 0.502704s 0.502718s 0.502705s 0.50275s
+// 0.464927s 0.464932s 0.464931s 0.464927s 0.464924s 0.464927s 0.464927s 0.464933s
+// 0.461055s 0.461057s 0.461057s 0.461056s 0.461057s 0.46106s 0.461101s 0.461174s
+// [       OK ] LightChronesPerformanceTest.ParallelFull (2643 ms)
