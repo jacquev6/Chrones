@@ -18,7 +18,10 @@ using chrones::heavy_stopwatch;
 #define REPETITIONS 5
 #define STOPWATCHES_PER_REPETITION 1000000
 #define THREADS 8
-static_assert(STOPWATCHES_PER_REPETITION % THREADS == 0, "THREADS must divide STOPWATCHES_PER_REPETITION to create the same number of stopwatches on each thread");
+
+static_assert(
+  STOPWATCHES_PER_REPETITION % THREADS == 0,
+  "THREADS must divide STOPWATCHES_PER_REPETITION to create the same number of stopwatches on each thread");
 
 
 // Note: 'EXPECT_LE's that compare a duration measured during the test
