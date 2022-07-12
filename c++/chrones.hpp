@@ -28,16 +28,14 @@
 
 #include <boost/thread.hpp>
 #include <boost/optional.hpp>
-#include <boost/lockfree/queue.hpp>
 
 #include "stream-statistics.hpp"
 
 
-// The Chrones library instruments your code to measure the time taken by each function.
+// The Chrones library instruments your code to measure the time taken by code blocks.
 
 // Usage:
-// In your main file, use the CHRONABLE macro, giving it the base name of the
-// csv file you want:
+// In your main file, use the CHRONABLE macro, giving it the base name of the csv file you want:
 //     CHRONABLE("my-exec")
 // The code above will generate `my-exec.[PID].chrones.csv` in the working directory.
 // You can then use `chrones.py report my-exec.[PID].chrones.csv` to generate a report.
@@ -82,7 +80,7 @@
 
 // Known current limitations of the Chrones libraries:
 // - it uses at least one GCC extension (__VA_OPT__)
-// - it is not safe to use outside main (i.e. during initialization of global and static variables)
+// - it is not safe to use outside main (e.g. during initialization of global and static variables)
 // - it is not tested on recursive code. It might or might not work in that case.
 // These limitation might be removed in future versions of the library.
 
@@ -585,12 +583,12 @@ extern coordinator global_coordinator;
 
 #else
 
-// Variadic macros that forwards its arguments to the appropriate constructors
-#define CHRONE(...) auto chrones_stopwatch##__line__ = chrones::heavy_stopwatch( \
+// Variadic macros that forwards their arguments to the appropriate constructors
+#define CHRONE(...) auto chrones_stopwatch_##__line__ = chrones::heavy_stopwatch( \
   &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
-#define MINICHRONE(...) auto chrones_stopwatch##__line__ = chrones::light_stopwatch( \
+#define MINICHRONE(...) auto chrones_stopwatch_##__line__ = chrones::light_stopwatch( \
   &chrones::global_coordinator, __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
