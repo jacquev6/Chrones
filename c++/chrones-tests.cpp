@@ -141,50 +141,50 @@ TEST(ChronesTest, BasicLightOnce) {
 }
 
 TEST(ChronesTest, BasicHeavyFewTimes) {
-    std::ostringstream oss;
-    MockInfo::time = 122;
-    MockInfo::process_id = 8;
-    MockInfo::thread_id = 1;
+  std::ostringstream oss;
+  MockInfo::time = 122;
+  MockInfo::process_id = 8;
+  MockInfo::thread_id = 1;
 
-    {
-      coordinator c(oss);
-      for (int i = 1; i != 4; ++i) {
-        MockInfo::time += i * 4;
-        heavy_stopwatch t(&c, "f", "label", i);
-        MockInfo::time += i * 3;
-      }
-      MockInfo::time = 200;
+  {
+    coordinator c(oss);
+    for (int i = 1; i != 4; ++i) {
+      MockInfo::time += i * 4;
+      heavy_stopwatch t(&c, "f", "label", i);
+      MockInfo::time += i * 3;
     }
+    MockInfo::time = 200;
+  }
 
-    ASSERT_EQ(
-      oss.str(),
-      "8,1,126,sw_start,\"f\",\"label\",1\n"
-      "8,1,129,sw_stop\n"
-      "8,1,137,sw_start,\"f\",\"label\",2\n"
-      "8,1,143,sw_stop\n"
-      "8,1,155,sw_start,\"f\",\"label\",3\n"
-      "8,1,164,sw_stop\n");
+  ASSERT_EQ(
+    oss.str(),
+    "8,1,126,sw_start,\"f\",\"label\",1\n"
+    "8,1,129,sw_stop\n"
+    "8,1,137,sw_start,\"f\",\"label\",2\n"
+    "8,1,143,sw_stop\n"
+    "8,1,155,sw_start,\"f\",\"label\",3\n"
+    "8,1,164,sw_stop\n");
 }
 
 TEST(ChronesTest, BasicLightFewTimes) {
-    std::ostringstream oss;
-    MockInfo::time = 122;
-    MockInfo::process_id = 8;
-    MockInfo::thread_id = 1;
+  std::ostringstream oss;
+  MockInfo::time = 122;
+  MockInfo::process_id = 8;
+  MockInfo::thread_id = 1;
 
-    {
-      coordinator c(oss);
-      for (int i = 1; i != 4; ++i) {
-        MockInfo::time += i * 4;
-        light_stopwatch t(&c, "f", boost::none, i);
-        MockInfo::time += i * 3;
-      }
-      MockInfo::time = 200;
+  {
+    coordinator c(oss);
+    for (int i = 1; i != 4; ++i) {
+      MockInfo::time += i * 4;
+      light_stopwatch t(&c, "f", boost::none, i);
+      MockInfo::time += i * 3;
     }
+    MockInfo::time = 200;
+  }
 
-    ASSERT_EQ(
-      oss.str(),
-      "8,1,200,sw_summary,\"f\",-,3,6,2,3,6,9,18\n");
+  ASSERT_EQ(
+    oss.str(),
+    "8,1,200,sw_summary,\"f\",-,3,6,2,3,6,9,18\n");
 }
 
 TEST(ChronesTest, LabelWithQuotes) {
