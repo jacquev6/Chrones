@@ -9,7 +9,7 @@ It aims at being very simple to use and provide useful information out-of-the bo
 
 Here is an example of graph produced by *Chrones* about a shell script launching a few executables (single-threaded, custom multi-threaded, OpenMP multi-threaded, and CUDA):
 
-@todo Insert example image
+![Example](example/example.png)
 
 *Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/en/publications/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
 
@@ -209,21 +209,38 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 # Code of the example image
 
-As a complete example, here is the code of the shell script that was used to generate the example image at the top of this file:
+As a complete example, here is the shell script that the image at the top of this Readme is about:
 
-@todo Create shell script
+<!-- START example.sh -->
+    # File name: example.sh
+
+    eval $(chrones shell activate example)
+
+    chrones_start sleeping
+    # sleep 3
+    chrones_stop
+<!-- STOP -->
 
 And the various executables called by the script:
 
 @todo Create code for each executable
 
-This code is compiled using these commands:
+This code is built using these commands:
 
-@todo Create shell script for compiling
+<!-- START build.sh -->
+<!-- STOP -->
 
-And executed like this:
+It's executed like this:
 
-@todo Create shell script for running
+<!-- START run.sh -->
+    chrones run -- ./example.sh
+<!-- STOP -->
+
+And the report is created like this:
+
+<!-- START report.sh -->
+    chrones report
+<!-- STOP -->
 
 @todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./run-development-cycle.py`)
 
