@@ -1,3 +1,8 @@
+<!--
+Copyright 2020-2022 Laurent Cabaret
+Copyright 2020-2022 Vincent Jacques
+-->
+
 *Chrones* is a software development tool to visualize runtime statistics (CPU percentage, GPU percentage, memory usage, *etc.*) about your program and correlate them with the phases of your program.
 
 It aims at being very simple to use and provide useful information out-of-the box *and* at being customizable to your specific use cases.
@@ -224,7 +229,7 @@ And executed like this:
 
 @todo Create shell script for running
 
-@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./make.sh`)
+@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./run-development-cycle.sh`)
 
 # Developing Chrones itself
 
@@ -232,6 +237,14 @@ Dependencies:
 - a reasonably recent version of Docker
 - a reasonably recent version of Bash
 
-To run all tests:
+To build everything and run all tests:
 
-    ./make.sh -j$(nproc)
+    ./run-development-cycle.sh --long
+
+To skip particularly long tests:
+
+    ./run-development-cycle.sh
+
+Or even:
+
+    ./run-development-cycle.sh --quick
