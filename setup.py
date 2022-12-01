@@ -6,13 +6,17 @@
 import setuptools
 
 
-version = "0.0.2"
+version = "0.0.5"
+
+with open("README.md") as f:
+    long_description = f.read()
+long_description = long_description.replace("example/example.png", f"https://github.com/jacquev6/Chrones/raw/v{version}/example/example.png")
 
 setuptools.setup(
     name="Chrones",
     version=version,
     description="Software development tool to visualize runtime statistics about your program and correlate them with its phases",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jacquev6/Chrones",
     author="Vincent Jacques",
