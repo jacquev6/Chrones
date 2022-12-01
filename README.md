@@ -1,115 +1,232 @@
-What is a chrone ?
-==================
+*Chrones* is a software development tool to visualize runtime statistics (CPU percentage, GPU percentage, memory usage, *etc.*) about your program and correlate them with the phases of your program.
 
-Apart from an extraordinary literary object found in the masterpiece [La Horde du Contrevent (french only)](https://lavolte.net/livres/la-horde-du-contrevent/), a chrone is a stopwatch to measure the execution duration of a piece of code.
-A set of tools are provided to produce human-readable reports.
+It aims at being very simple to use and provide useful information out-of-the box *and* at being customizable to your specific use cases.
 
-The ambition of Chrones is to accurately measure and report durations down to the millisecond.
-No nanoseconds in this project!
-Overhead introduced by Chrones is less than a second per million instrumented blocks.
+Here is an example of graph produced by *Chrones* about a shell script launching a few executables (single-threaded, custom multi-threaded, OpenMP multi-threaded, and CUDA):
 
-How it works
-============
+@todo Insert example image
 
-During the execution of the program being monitored, a stream of events (*e.g.* "start stopwatch", "stop stopwatch") is recorded in a `.csv` file.
-After execution, a command-line tool (`chrones-report.py`) can be used to generate various reports and visualizations.
-See "Reporting" below.
+*Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/cv/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
 
-Chrones makes the strong assumption that stopwatches are nested (*i.e.* "start" and "stop" events are sequenced like a well-parenthesized expression).
-This is useful because stopwatches typically measure the duration of a function or code block.
-That assumption allows re-creating the call stack at any point in the program's life.
+@todo (Laurent) Review the paragraph about sponsoring above
 
-Languages supported
-===================
+It's licensed under the [MIT license](http://choosealicense.com/licenses/mit/).
+Its [documentation and source code](https://github.com/jacquev6/Chrones) are on GitHub.
 
-C++: full support of multi-threaded programs
+@todo (Laurent) Is MIT license above OK?
 
-Bash: full support of single-processed scripts
+Questions? Remarks? Bugs? Want to contribute? [Open an issue](https://github.com/jacquev6/Chrones/issues)!
 
-The arguably simple format of the `.cvs` file makes it relatively easy to support another language:
-one "just" has to create a library that produces that file.
+<!-- @todo Insert paragraph about Chrones' clients? -->
 
-Get started
-===========
+# Conceptual overview
 
-C++
----
+*Chrones* consist of three parts: instrumentation (optional), monitoring and reporting.
 
-Add `c++/chrones.hpp` in your include path.
+The instrumentation part of *Chrones* runs inside your program after you've modified it.
+It's used as a library for your programming language.
+To use it, you add one-liners to the functions you want to know about.
+After that, your program logs insider timing information about these functions.
 
-In your main source file, add:
+The monitoring part is a wrapper around your program.
+It runs your program as you instruct it to, preserving its access to the standard input and outputs, the environment, and its command-line.
+While doing so, it monitors your program's whole process tree and logs resource usage metrics.
 
-    #include "chrones.hpp"
+The reporting part of *Chrones* reads the logs produced by the instrumentation and monitoring, and produces human-readable reports including graphs.
 
-    CHRONABLE("name_of_your_executable")
+The instrumentation part of *Chrones* is completely optional.
+You can use the monitoring part on non-instrumented programs,
+or even on partially instrumented programs like a shell script calling an instrumented executable and a non-instrumented executable.
+The graphs produced by *Chrones*' reporting will just miss information about your program's phases.
 
-The name above will be used as the base name of the `.csv` file.
+We've chosen the command-line as the main user interface for *Chrones*' to allow easy integration into your automated workflows.
+It can also be used as a Python library for advanced use-cases.
 
-Add `CHRONE();` at the top of the functions and blocks you want to instrument.
-This macro will automatically detect the name of the function it's in.
-If you need to instrument several blocks in the same function, you might want to pass it a label argument:
+Please note that *Chrones* currently only works on Linux.
+Furthermore, the C++ instrumentation requires g++.
+We would gladly accept contributions that extend *Chrones*' usability.
 
-    void f() {
+*Chrones*' instrumentation libraries are available for Python, C++ and the shell language.
+
+# Expected performance
+
+The instrumentation part of *Chrones* accurately measures and reports durations down to the millisecond.
+Its monitoring part takes samples a few times per second.
+No nanoseconds in this project; *Chrones* is well suited for programs that run for longer than a dozen seconds.
+
+Overhead introduced by *Chrones* in C++ programs is less than a second per million instrumented blocks.
+Don't use it for functions called billions of times.
+
+# Get started
+
+## Install *Chrones*
+
+The monitoring and reporting parts of *Chrones* are distributed as a [Python package on PyPI](https://pypi.org/project/Chrones/).
+Install them with `pip install Chrones`.
+
+<details>
+<summary>And at the moment that's all you need.</summary>
+
+The instrumentation parts are distributed in language-specific ways.
+
+The Python version comes with the `Chrones` Python packages you've just installed.
+
+The C++ and shell languages don't really have package managers, so the C++ and shell versions happen to also be distributed within the Python package.
+
+Versions for other languages will be distributed using the appropriate packages managers.
+</details>
+
+## (Optional) Instrument your code
+
+### Concepts
+
+The instrumentation libraries are based on the following concepts:
+
+#### Coordinator
+
+The *coordinator* is a single object that centralizes measurements and writes them into a log file.
+
+It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
+This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented.
+
+#### Chrone
+
+A *chrone* is the main instrumentation tool.
+You can think of it as a stopwatch that logs an event when it's started and another event when it's stoped.
+
+Multiple chrones can be nested.
+This makes them particularly suitable to instrument [structured code](https://en.wikipedia.org/wiki/Structured_programming) with blocks and functions (*i.e.* the vast majority of modern programs).
+From the log of the nested chrones, *Chrones*' reporting is able to reconstruct the evolution of the call stack(s) of the program.
+
+@todo Talk about name, label, and index
+
+#### Mini-chrone
+
+@todo Define, explain the added value
+
+### Language-specific instructions
+
+The *Chrones* instrumentation library is currently available for the following languages:
+
+#### Shell
+
+First, import *Chrones* and initialize the coordinator with:
+
+    eval $(chrones shell activate program-name)
+
+where `program-name` is... the name of your program.
+
+You can then use the two functions `chrones_start` and `chrones_stop` to instrument your shell functions:
+
+    function foo {
+        chrones_start foo
+
+        # Do something
+
+        chrones_stop
+    }
+
+@todo Name, label, and index
+
+#### C++
+
+First, `#include <chrones.hpp>`.
+The header is distributed within *Chrones*' Python package.
+You can get is location with `chrones config c++ header-location`, that you can pass to the `-I` option of you compiler.
+For example, `g++ foo.cpp -I$(chrones config c++ header-location) -o foo`.
+
+Create the coordinator at global scope, before your `main` function:
+
+    CHRONABLE("program-name")
+
+    int main() {
+        // Do something
+    }
+
+where `program-name` is... the name of your program.
+
+Then you can instrument functions and blocks using the `CHRONE` macro:
+
+    void foo() {
         CHRONE();
+
+        // Do something
+    }
+
+    void bar() {
+        // Do something
+
         {
-            CHRONE("first block");
-            // Do something long
-        }
-        {
-            CHRONE("second block");
-            // Do something long
+            CHRONE("block label");
         }
     }
 
-If you need to instrument the successive iteration of a loop, you can pass a label and an index:
+*Chrones*' instrumentation can be statically disabled by passing `-DCHRONES_DISABLED` to the compiler.
+In that case, all macros provided by the header will be empty and your code will compile exactly as if it was not using *Chrones*.
 
-    void f() {
-        CHRONE();
-        for (int i = 0; i != 10; ++i) {
-            CHRONE("loop", i);
-            // Do something long
-        }
-    }
+@todo Name, label, and index
 
-Build and run your program to generate the `.csv` file.
-See "reporting" below to generate reports.
+#### Python
 
-If you compile `chrones.hpp` with `-DNO_CHRONES`, both macros expand to nothing, effectively removing Chrones from your program.
+First, import *Chrones*' decorator: `from chrones.instumentation import chrone`.
 
-Bash
-----
+Then, decorate your functions:
 
-Add `bash/chrones.sh` near your script.
+    @chrone
+    def foo():
+        # Do something
 
-In your script, `source chrones.sh` then call `chrones_initialize name_of_your_script`.
-That name will be used as the base name of the `.csv` file.
+You can also instrument blocks that are not functions:
 
-Call `chrones_start_stopwatch` (resp. `chrones_stop_stopwatch`) at the beginning (resp. end) of the functions and blocks you want to instrument.
+    with chrone("bar"):
+        # Do something
 
-`chrones_start_stopwatch` accepts a mandatory "function" argument and optional "label" and "index" arguments for use-cases similar to the ones described in the "C++" section above:
+@todo Name, label, and index
 
-    for i in $(seq 1 10)
-    do
-        chrones_start_stopwatch "main" "loop" $i
-        # Do something long
-        chrones_stop_stopwatch
+## Run using `chrones run`
 
-Run your script to generate the `.csv` file.
-See "reporting" below to generate reports.
+Compile your executable(s) if required.
+Then launch them using `chrones run -- your_program --with --its --options`.
 
-<!-- @todo Support the NO_CHRONES functionality? -->
+Everything before the `--` is interpreted as options for `chrones run`.
+Everything after is passed as-is to your program.
+The standard input and output are passed unchanged to your program.
 
-Reporting
----------
+Have a look at `chrones run --help` for its detailed usage.
 
-You should now have a `name_of_your_program.chrones.*.csv` file.
+## Generate report
 
-Running `chrones-report.py summaries name_of_your_program.chrones.*.csv` will print out a "summaries" `.json` document.
+Run `chrones report` to generate a report in the current directory.
 
-See `chrones-report.py --help` for details.
+Have a look at `chrones report --help` for its detailed usage.
 
-Developing Chrones itself
-=========================
+## Use *Chrones* as a library
+
+Out of the box, *Chrones* produces generic reports and graphs, but you can customize them by using *Chrones* as a Python library.
+
+@todo Describe
+
+# Code of the example image
+
+As a complete example, here is the code of the shell script that was used to generate the example image at the top of this file:
+
+@todo Create shell script
+
+And the various executables called by the script:
+
+@todo Create code for each executable
+
+This code is compiled using these commands:
+
+@todo Create shell script for compiling
+
+And executed like this:
+
+@todo Create shell script for running
+
+@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./make.sh`)
+
+# Developing Chrones itself
 
 Dependencies:
 - a reasonably recent version of Docker
