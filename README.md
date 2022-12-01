@@ -7,7 +7,7 @@ Copyright 2020-2022 Vincent Jacques
 
 It aims at being very simple to use and provide useful information out-of-the box *and* at being customizable to your specific use cases.
 
-Here is an example of graph produced by *Chrones* about a shell script launching a few executables (single-threaded, custom multi-threaded, OpenMP multi-threaded, and CUDA):
+Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see [at the end of this Readme](#code-of-the-example-image) exactly how this image is generated):
 
 ![Example](example/example.png)
 
