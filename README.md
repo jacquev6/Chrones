@@ -16,7 +16,7 @@ Here is an example of graph produced by *Chrones* about a shell script launching
 It's licensed under the [MIT license](http://choosealicense.com/licenses/mit/).
 Its [documentation and source code](https://github.com/jacquev6/Chrones) are on GitHub.
 
-Questions? Remarks? Bugs? Want to contribute? [Open an issue](https://github.com/jacquev6/Chrones/issues)!
+Questions? Remarks? Bugs? Want to contribute? Open [an issue](https://github.com/jacquev6/Chrones/issues) or [a discussion](https://github.com/jacquev6/Chrones/discussions)!
 
 <!-- @todo Insert paragraph about Chrones' clients? -->
 
