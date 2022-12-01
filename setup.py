@@ -13,4 +13,10 @@ version = "0.0.1"
 setuptools.setup(
     name="Chrones",
     version=version,
+    install_requires=open("requirements.txt").readlines(),
+    entry_points={
+        "console_scripts": [
+            "chrones = Chrones.command_line_interface:main",
+        ],
+    },
 )
