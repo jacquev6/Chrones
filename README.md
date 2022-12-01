@@ -270,8 +270,6 @@ And the report is created like this:
     chrones report
 <!-- STOP -->
 
-@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./run-development-cycle.py`)
-
 # Developing Chrones itself
 
 Dependencies:
