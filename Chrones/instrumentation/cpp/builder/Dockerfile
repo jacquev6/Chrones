@@ -7,12 +7,9 @@ FROM ubuntu:20.04
 RUN set -x \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-      cmake \
-      g++ \
-      make \
+      g++ make `# Our build tools` \
+      wget ca-certificates cmake `# For Google Test` \
       python3-pip \
-      wget ca-certificates \
-      libboost-all-dev \
  && apt-get clean
 
 # Google Test

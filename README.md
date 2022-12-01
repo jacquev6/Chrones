@@ -274,7 +274,7 @@ And the report is created like this:
 
 Dependencies:
 - a reasonably recent version of Docker
-- a reasonably recent version of Bash
+- a reasonably recent version of Python 3
 
 To build everything and run all tests:
 

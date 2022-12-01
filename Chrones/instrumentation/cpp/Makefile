@@ -20,16 +20,16 @@ default: lint test
 #############
 
 # Source files
-c++_header_files := $(wildcard c++/*.hpp)
-c++_source_files := $(wildcard c++/*.cpp)
-c++_test_source_files := $(wildcard c++/*-tests.cpp)
+c++_header_files := $(wildcard *.hpp)
+c++_source_files := $(wildcard *.cpp)
+c++_test_source_files := $(wildcard *-tests.cpp)
 
 # Intermediate files
 object_files := $(patsubst %.cpp,build/%.o,$(c++_source_files))
 
 # Sentinel files
 cpplint_sentinel_files := $(patsubst %,build/%.cpplint.ok,$(c++_header_files) $(c++_source_files))
-test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files)) build/chrones-report.py.tests.ok c++/chrones-perf-tests.log
+test_sentinel_files := $(patsubst %,build/%.tests.ok,$(c++_test_source_files))
 
 .PHONY: debug-inventory
 debug-inventory:
@@ -57,7 +57,7 @@ lint: $(cpplint_sentinel_files)
 build/%.cpplint.ok: %
 	@echo "cpplint $<"
 	@mkdir -p $(dir $@)
-	@cpplint --root=cpp --linelength=120 --filter=-build/include_subdir $<
+	@cpplint --root=. --linelength=120 --filter=-build/include_subdir $<
 	@touch $@
 
 #########
@@ -71,19 +71,8 @@ build/%-tests.cpp.tests.ok: build/%-tests
 	@echo "$<"
 	@mkdir -p $(dir $@)
 	@rm -f build/$*-tests.*.chrones.csv
-	@cd build/c++ && OMP_NUM_THREADS=4 ../../$< 2>&1 | tee ../../$@.log
+	@cd build && OMP_NUM_THREADS=4 ../$< 2>&1 | tee ../$@.log
 	@touch $@
-
-build/chrones-report.py.tests.ok: chrones-report.py build/c++/chrones-tests.cpp.tests.ok c++/chrones-tests.py
-	@echo "chrones-report.py self-test"
-	@./chrones-report.py self-test
-	@echo "chrones-report.py summaries"
-	@./chrones-report.py summaries build/c++/chrones-tests.*.chrones.csv >build/c++/chrones-tests.chrones.summaries.json
-	@c++/chrones-tests.py build/c++/chrones-tests.chrones.summaries.json
-	@touch $@
-
-c++/chrones-perf-tests.log: build/c++/chrones-perf-tests.cpp.tests.ok
-	@cp $^.log $@
 
 ########
 # Link #
@@ -94,13 +83,13 @@ c++/chrones-perf-tests.log: build/c++/chrones-perf-tests.cpp.tests.ok
 build/%-tests: build/%-tests.o
 	@echo "g++     $< -o $@"
 	@mkdir -p $(dir $@)
-	@g++ -g -fopenmp $^ -lgtest_main -lgtest -lboost_thread -o $@
+	@g++ -g -fopenmp $^ -lgtest_main -lgtest -o $@
 
 ###############
 # Compilation #
 ###############
 
-build/%.o: %.cpp c++/chrones.hpp
+build/%.o: %.cpp chrones.hpp
 	@echo "g++  -c $< -o $@"
 	@mkdir -p $(dir $@)
 	@g++ -std=gnu++11 -Wall -Wextra -Wpedantic -Werror -Wsuggest-override -Weffc++ -g -O3 -fopenmp -c $< -o $@

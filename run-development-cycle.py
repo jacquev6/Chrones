@@ -4,9 +4,9 @@
 # Copyright 2020-2022 Vincent Jacques
 
 import glob
+import multiprocessing
 import os
 import re
-import shutil
 import subprocess
 import sys
 import textwrap
@@ -26,7 +26,16 @@ def main(args):
         long = False
         quick = False
 
+    run_cpp_tests()
     build_example_from_readme()
+
+
+def run_cpp_tests():
+    subprocess.run(
+        ["./make.sh", f"-j{max(1, multiprocessing.cpu_count() - 2)}"],
+        cwd="Chrones/instrumentation/cpp",
+        check=True,
+    )
 
 
 def build_example_from_readme():
