@@ -1,16 +1,33 @@
 # Copyright 2020-2022 Laurent Cabaret
 # Copyright 2020-2022 Vincent Jacques
 
+import os
 import subprocess
 import click
 import matplotlib.pyplot as plt
 
-from .instrumentation import shell as shell_instrumentation
+from . import instrumentation
+from .instrumentation import shell as shell_instrumentation  # @todo How could I refer to it as `instrumentation.shell`?
 
 
 @click.group
 def main():
     pass
+
+
+@main.group
+def config():
+    pass
+
+
+@config.group(name="c++")
+def cpp():
+    pass
+
+
+@cpp.command
+def header_location():
+    print(os.path.join(os.path.dirname(instrumentation.__file__), "c++"))
 
 
 @main.group

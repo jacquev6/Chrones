@@ -30,9 +30,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
-#include <boost/thread.hpp>
-
 
 // The Chrones library instruments your code to measure the time taken by code blocks.
 
@@ -448,7 +445,7 @@ class coordinator_tmpl {
   void add_summary_events() {
     const std::size_t thread_id = Info::get_thread_id();
     const int64_t stop_time = Info::get_time();
-    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    std::lock_guard<std::mutex> guard(_statistics_mutex);
     for (const auto& stat : _statistics) {
       const char* function;
       const char* label;
@@ -472,12 +469,12 @@ class coordinator_tmpl {
       const char* function,
       const char* label,
       const int64_t duration) {
-    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    std::lock_guard<std::mutex> guard(_statistics_mutex);
     _statistics[std::make_tuple(function, label)].update(duration);
   }
 
   void add_event(std::unique_ptr<Event> event) {
-    boost::lock_guard<boost::mutex> guard(_events_mutex);
+    std::lock_guard<std::mutex> guard(_events_mutex);
     _events.push_back(std::move(event));
   }
 
@@ -493,7 +490,7 @@ class coordinator_tmpl {
   void flush_events() {
     std::vector<std::unique_ptr<Event>> events;
     {
-      boost::lock_guard<boost::mutex> guard(_events_mutex);
+      std::lock_guard<std::mutex> guard(_events_mutex);
       if (_events.empty()) {
         return;
       }
@@ -511,15 +508,13 @@ class coordinator_tmpl {
   std::ostream& _stream;
 
   std::vector<std::unique_ptr<Event>> _events;
-  boost::mutex _events_mutex;
+  std::mutex _events_mutex;
 
   std::map<std::tuple<const char*, const char*>, StreamStatistics> _statistics;
-  boost::mutex _statistics_mutex;
+  std::mutex _statistics_mutex;
 
   std::atomic_bool _work_done;
-  // Using boost::thread instead of std::thread to avoid this segmentation fault:
-  // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
-  boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
+  std::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 
 ////////////////////////////////////////////////////////////////////////////////

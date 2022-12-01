@@ -62,14 +62,12 @@ def build_example_from_readme():
             needs_write = True
         if needs_write:
             with open(file_path, "w") as f:
-                f.write(textwrap.dedent("""\
-                    #!/bin/bash
-
-                    set -o errexit
-
-                    . .venv/bin/activate
-
-                """))
+                if file_path.endswith(".sh"):
+                    f.write(textwrap.dedent("""\
+                        #!/bin/bash
+                        set -o errexit
+                        . .venv/bin/activate
+                    """))
                 f.write(file_contents)
             os.chmod(file_path, 0o755)
 

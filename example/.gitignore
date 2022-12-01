@@ -1,2 +1,8 @@
-/*.sh
-/*.chrones.csv
+/build.sh
+/run.sh
+/example.sh
+/example.*.chrones.csv
+/single.cpp
+/single
+/single.*.chrones.csv
+/report.sh

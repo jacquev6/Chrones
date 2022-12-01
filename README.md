@@ -216,18 +216,46 @@ As a complete example, here is the shell script that the image at the top of thi
 
     source <(chrones shell activate example)
 
-    chrones_start sleeping
-    # sleep 3
+    chrones_start call-single
+    ./single
     chrones_stop
 <!-- STOP -->
 
 And the various executables called by the script:
 
-@todo Create code for each executable
+<!-- START single.cpp -->
+    // File name: single.cpp
+
+    #include <chrones.hpp>
+
+    CHRONABLE("single");
+
+    void something_long() {
+        CHRONE();
+    }
+
+    void something_else() {
+        CHRONE();
+    }
+
+    int main() {
+        CHRONE();
+
+        {
+            CHRONE("loop");
+            for (int i = 0; i != 10; ++i) {
+                CHRONE("iteration", i);
+                something_long();
+                something_else();
+            }
+        }
+    }
+<!-- STOP -->
 
 This code is built using these commands:
 
 <!-- START build.sh -->
+    g++ -std=c++2a -O3 -I$(chrones config c++ header-location) single.cpp -o single
 <!-- STOP -->
 
 It's executed like this:
