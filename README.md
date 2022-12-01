@@ -229,7 +229,7 @@ And executed like this:
 
 @todo Create shell script for running
 
-@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./run-development-cycle.sh`)
+@todo Generate the example image using codes and commands above (literraly, by automating extracting them from this very file during `./run-development-cycle.py`)
 
 # Developing Chrones itself
 
@@ -239,12 +239,12 @@ Dependencies:
 
 To build everything and run all tests:
 
-    ./run-development-cycle.sh --long
+    ./run-development-cycle.py --long
 
 To skip particularly long tests:
 
-    ./run-development-cycle.sh
+    ./run-development-cycle.py
 
 Or even:
 
-    ./run-development-cycle.sh --quick
+    ./run-development-cycle.py --quick
