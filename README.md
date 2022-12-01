@@ -113,7 +113,7 @@ The *Chrones* instrumentation library is currently available for the following l
 
 First, import *Chrones* and initialize the coordinator with:
 
-    eval $(chrones shell activate program-name)
+    source <(chrones shell activate program-name)
 
 where `program-name` is... the name of your program.
 
@@ -214,7 +214,7 @@ As a complete example, here is the shell script that the image at the top of thi
 <!-- START example.sh -->
     # File name: example.sh
 
-    eval $(chrones shell activate example)
+    source <(chrones shell activate example)
 
     chrones_start sleeping
     # sleep 3

@@ -1,6 +1,11 @@
+# Copyright 2020-2022 Laurent Cabaret
+# Copyright 2020-2022 Vincent Jacques
+
 import subprocess
 import click
 import matplotlib.pyplot as plt
+
+from .instrumentation import shell as shell_instrumentation
 
 
 @click.group
@@ -16,12 +21,8 @@ def shell():
 @shell.command
 @click.argument("program-name")
 def activate(program_name):
-    print("function chrones_start {")
-    print("  echo start")
-    print("}")
-    print("function chrones_stop {")
-    print("  echo stop")
-    print("}")
+    for line in shell_instrumentation.activate(program_name):
+        print(line)
 
 
 @main.command

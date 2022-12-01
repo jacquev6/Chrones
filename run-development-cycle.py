@@ -3,13 +3,14 @@
 # Copyright 2020-2022 Laurent Cabaret
 # Copyright 2020-2022 Vincent Jacques
 
+import glob
 import os
 import re
 import shutil
 import subprocess
 import sys
 import textwrap
-# Please keep this script simple to use only the standard library
+# Please keep this script simple enough to use only the standard library
 
 
 def main(args):
@@ -29,6 +30,9 @@ def main(args):
 
 
 def build_example_from_readme():
+    for f in glob.glob("example/*.chrones.csv"):
+        os.unlink(f)
+
     with open("README.md") as f:
         lines = f.readlines()
 

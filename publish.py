@@ -6,6 +6,7 @@
 import glob
 import shutil
 import subprocess
+# Please keep this script simple enough to use only the standard library
 
 # @todo Use a dedicated virtualenv instead of assuming that
 #   pip install --upgrade build twine
