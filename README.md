@@ -226,29 +226,46 @@ And the various executables called by the script:
 <!-- START single.cpp -->
     // File name: single.cpp
 
+    #include <chrono>
+    #include <thread>
+
     #include <chrones.hpp>
+
+    using namespace std::chrono_literals;
 
     CHRONABLE("single");
 
     void something_long() {
-        CHRONE();
+      CHRONE();
+
+      for (int i = 0; i < 512; ++i) {
+        volatile double x = 3.14;
+        for (int j = 0; j != 1'000'000; ++j) {
+          x = x * j;
+        }
+      }
     }
 
     void something_else() {
-        CHRONE();
+      CHRONE();
+
+      std::this_thread::sleep_for(1000ms);
     }
 
     int main() {
-        CHRONE();
+      CHRONE();
 
-        {
-            CHRONE("loop");
-            for (int i = 0; i != 10; ++i) {
-                CHRONE("iteration", i);
-                something_long();
-                something_else();
-            }
+      {
+        CHRONE("loop");
+        for (int i = 0; i != 3; ++i) {
+          CHRONE("iteration", i);
+
+          something_else();
+          something_long();
         }
+      }
+
+      something_else();
     }
 <!-- STOP -->
 

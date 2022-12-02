@@ -4,6 +4,7 @@
 # Copyright 2020-2022 Vincent Jacques
 
 import glob
+import itertools
 import multiprocessing
 import os
 import re
@@ -39,7 +40,10 @@ def run_cpp_tests():
 
 
 def build_example_from_readme():
-    for f in glob.glob("example/*.chrones.csv"):
+    for f in itertools.chain(
+        glob.glob("example/*.chrones.csv"),
+        glob.glob("example/*.pickle"),
+    ):
         os.unlink(f)
 
     with open("README.md") as f:

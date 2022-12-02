@@ -1,5 +1,6 @@
 /build.sh
 /run.sh
+/run-result.pickle
 /example.sh
 /example.*.chrones.csv
 /single.cpp
