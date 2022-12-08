@@ -1,9 +1,11 @@
 # Copyright 2020-2022 Laurent Cabaret
 # Copyright 2020-2022 Vincent Jacques
 
+import dataclasses
+import glob
 import pickle
 import shlex
-import subprocess
+from typing import Dict, List, Tuple
 import click
 import matplotlib.pyplot as plt
 
@@ -11,6 +13,7 @@ import matplotlib.pyplot as plt
 from .instrumentation import shell as shell_instrumentation
 from .instrumentation import cpp as cpp_instrumentation
 from .monitoring.runner import Runner, RunResults, Process
+from . import report as chrones_report
 
 
 @click.group
@@ -71,35 +74,86 @@ def report():
 
     chrones_ticks_ys = []
     chrones_ticks_labels = []
-    process_index = 0
-    def plot_chrones(process: Process):
+    bottom_y = 0
+    def plot_chrones(chrones_file_name):
         nonlocal chrones_ticks_ys
         nonlocal chrones_ticks_labels
-        nonlocal process_index
+        nonlocal bottom_y
+
+        @dataclasses.dataclass
+        class Thread:
+            stack: List[chrones_report.Event]
+            chrones: Dict[str, Tuple[float, float]]
+            first_event: chrones_report.Event
+            last_event: chrones_report.Event
+
+        threads = {}
+        with chrones_report.open_events_file(chrones_file_name) as events:
+            for event in events:
+                event.timestamp /= 1e9
+
+                thread = threads.setdefault(event.thread_id, Thread([], {}, None, None))
+                if thread.first_event is None:
+                    thread.first_event = event
+                thread.last_event = event
+
+                if event.__class__ == chrones_report.StopwatchStart:
+                    thread.stack.append(event)
+                elif event.__class__ == chrones_report.StopwatchStop:
+                    start_event = thread.stack.pop()
+                    assert start_event.label is None
+                    bars = thread.chrones.setdefault(start_event.function_name, [])
+                    bars.append((start_event.timestamp - origin_timestamp, event.timestamp - start_event.timestamp))
+                else:
+                    assert False
+        threads = list(threads.values())
+        assert all(t.stack == [] for t in threads)
+
+        for thread in threads:
+            if thread.chrones:
+                chrones_ax.broken_barh(
+                    [(thread.first_event.timestamp - origin_timestamp, thread.last_event.timestamp - thread.first_event.timestamp)],
+                    (bottom_y + 0.75, len(thread.chrones) * 3 - 0.5),
+                    color="orange"
+                )
+                for (name, bars) in thread.chrones.items():
+                    chrones_ax.broken_barh(bars, (bottom_y + 1, 2))
+                    chrones_ticks_ys.append(bottom_y + 2)
+                    chrones_ticks_labels.append(name)
+                    bottom_y += 3
+                bottom_y += 1
+
+    def plot_processes(process: Process):
+        nonlocal chrones_ticks_ys
+        nonlocal chrones_ticks_labels
+        nonlocal bottom_y
         # print(process.command, process.started_between_timestamps[0], process.started_between_timestamps[1], process.terminated_between_timestamps)
+        chrones_file_names = glob.glob(f"*.{process.pid}.chrones.csv")
+        if len(chrones_file_names) == 1:
+            plot_chrones(chrones_file_names[0])
         chrones_ax.broken_barh(
             [(process.started_between_timestamps[0] - origin_timestamp, process.started_between_timestamps[1] - process.started_between_timestamps[0])],
-            (process_index, 1),
+            (bottom_y, 1),
             color="grey"
         )
         chrones_ax.broken_barh(
             [(process.started_between_timestamps[1] - origin_timestamp, process.terminated_between_timestamps[0] - process.started_between_timestamps[1])],
-            (process_index, 1),
+            (bottom_y, 1),
             color="blue"
         )
         chrones_ax.broken_barh(
             [(process.terminated_between_timestamps[0] - origin_timestamp, process.terminated_between_timestamps[1] - process.terminated_between_timestamps[0])],
-            (process_index, 1),
+            (bottom_y, 1),
             color="grey"
         )
-        chrones_ticks_ys.append(process_index + 0.5)
+        chrones_ticks_ys.append(bottom_y + 0.5)
         chrones_ticks_labels.append(shlex.join(process.command)[-40:] or "*empty*")
         # chrones_ticks_labels.append(process.pid)
-        process_index += 2
+        bottom_y += 2
         for child_process in process.children:
-            plot_chrones(child_process)
+            plot_processes(child_process)
 
-    plot_chrones(results.main_process)
+    plot_processes(results.main_process)
     chrones_ax.set_yticks(chrones_ticks_ys, labels=chrones_ticks_labels)
 
 

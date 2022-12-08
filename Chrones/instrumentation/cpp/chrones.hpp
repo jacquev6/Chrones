@@ -635,10 +635,9 @@ labelled_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
 }
 
 struct RealInfo {
-  static std::chrono::steady_clock::time_point startup_time;
-
   static int64_t get_time() {
-    return std::chrono::nanoseconds(std::chrono::steady_clock::now() - startup_time).count();
+    const auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
   }
 
   static int get_process_id() {
@@ -684,8 +683,6 @@ extern coordinator global_coordinator;
 
 #define CHRONABLE(name) \
   namespace chrones { \
-    std::chrono::steady_clock::time_point RealInfo::startup_time = std::chrono::steady_clock::now(); \
-\
     std::ofstream global_stream( \
       std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv", std::ios_base::app); \
 \

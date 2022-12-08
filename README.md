@@ -249,16 +249,16 @@ And the various executables called by the script:
     void something_else() {
       CHRONE();
 
-      std::this_thread::sleep_for(1000ms);
+      std::this_thread::sleep_for(500ms);
     }
 
     int main() {
       CHRONE();
 
       {
-        CHRONE("loop");
+        // @todo CHRONE("loop");
         for (int i = 0; i != 2; ++i) {
-          CHRONE("iteration", i);
+          // @todo CHRONE("iteration", i);
 
           something_else();
           something_long();
