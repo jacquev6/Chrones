@@ -1,7 +1,7 @@
 # Copyright 2022 Vincent Jacques
 
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 import dataclasses
 import resource
@@ -14,7 +14,7 @@ import psutil
 
 @dataclasses.dataclass
 class InProgressInstantRunMetrics:
-    iteration: int
+    timestamp: float
     threads: int
     cpu_percent: float
     user_time: float
@@ -32,15 +32,15 @@ class InProgressProcess:
     psutil_process: psutil.Process
     pid: int
     command: List[str]
-    spawned_at_iteration: int
+    started_between_timestamps: Tuple[float, float]
+    terminated_between_timestamps: Optional[Tuple[float, float]]
     children: List["InProgressProcess"]
     instant_metrics: List[InProgressInstantRunMetrics]
-    terminated_at_iteration: Optional[int]
 
 
 @dataclasses.dataclass
-class InProgressSystemInstantMetrics:
-    iteration: int
+class SystemInstantMetrics:
+    timestamp: float
     host_to_device_transfer_rate: float
     device_to_host_transfer_rate: float
 
@@ -61,22 +61,17 @@ class InstantRunMetrics:
 
 
 @dataclasses.dataclass
-class GlobalMetrics:
-    duration: float
-
-
-@dataclasses.dataclass
 class Process:
     command: List[str]
-    spawned_at: float
-    terminated_at: float
+    pid: int
+    started_between_timestamps: Tuple[float, float]
+    terminated_between_timestamps: Tuple[float, float]
     instant_metrics: List[InstantRunMetrics]
     children: List["Process"]
-    global_metrics: GlobalMetrics
 
 
 @dataclasses.dataclass
-class MainProcessGlobalMetrics(GlobalMetrics):
+class MainProcessGlobalMetrics:
     user_time: float
     system_time: float
     minor_page_faults: int
@@ -127,68 +122,61 @@ class Runner:
         return self.__Run(self.__interval, self.__allowed_missing_samples, *args, **kwds)()
 
     class __Run:
-        def __init__(self, interval, allowed_missing_samples, *args, capture_output=False, **kwds):
+        def __init__(self, interval, allowed_missing_samples, command, capture_output=False, **kwds):
             self.__interval = interval
             self.__allowed_missing_samples = allowed_missing_samples
-            self.__args = args
+            self.__command = command
             self.__capture_output = capture_output
             self.__kwds = kwds
 
             self.__usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
-            self.__iteration = 0
             self.__monitored_processes = {}
             self.__system_instant_metrics = []
             self.__usage_after = None
 
         def __call__(self):
-            if self.__capture_output:
-                stdout_arg = subprocess.PIPE
-                stderr_arg = subprocess.PIPE
-                stdout_list = []
-                stderr_list = []
-            else:
-                stdout_arg = None
-                stderr_arg = None
             main_process = psutil.Popen(
-                *self.__args,
-                stdout=stdout_arg, stderr=stderr_arg, universal_newlines=True,
+                self.__command,
+                stdout=subprocess.PIPE if self.__capture_output else None,
+                stderr=subprocess.PIPE if self.__capture_output else None,
+                universal_newlines=True,
                 **self.__kwds)
-            spawn_time = time.perf_counter()
+            self.__timestamp = time.time()
+            self.__previous_timestamp = self.__timestamp
+            spawn_time = self.__timestamp
+
             main_process = self.__start_monitoring_process(main_process)
+            iteration = 0
 
             while main_process.psutil_process.returncode is None:
-                iteration_before = self.__iteration
+                missing_samples = 0
                 while True:
-                    self.__iteration += 1
-                    timeout = spawn_time + self.__iteration * self.__interval - time.perf_counter()
+                    iteration += 1
+                    target_timestamp = spawn_time + iteration * self.__interval
+                    timeout = target_timestamp - time.time()
                     if timeout > 0:
                         break
-                missing_samples = self.__iteration - iteration_before - 1
-                if missing_samples > self.__allowed_missing_samples:
-                    logging.warn(f"Monitoring is slow. {missing_samples} samples will be missing between t={(iteration_before + 1) * self.__interval:.3f}s and t={(self.__iteration - 1) * self.__interval:.3f}s included.")
+                    else:
+                        missing_samples += 1
                 try:
                     (stdout, stderr) = main_process.psutil_process.communicate(timeout=timeout)
-                    if self.__capture_output:
-                        stdout_list.append(stdout)
-                        stderr_list.append(stderr)
                 except subprocess.TimeoutExpired:
+                    self.__previous_timestamp = self.__timestamp
+                    self.__timestamp = time.time()
                     # Main process is still running
+                    if missing_samples > self.__allowed_missing_samples:
+                        logging.warn(f"Monitoring is slow. {missing_samples} samples will be missing just before t={self.__timestamp:.3f}s.")
                     self.__run_monitoring_iteration()
                 else:
+                    self.__previous_timestamp = self.__timestamp
+                    self.__timestamp = time.time()
                     # Main process has terminated
                     self.__terminate()
-
-            if self.__capture_output:
-                stdout = "".join(stdout_list)
-                stderr = "".join(stderr_list)
-            else:
-                stdout = None
-                stderr = None
 
             return RunResults(
                 system=SystemMetrics(instant_metrics=[
                     SystemInstantMetrics(
-                        timestamp=m.iteration * self.__interval,
+                        timestamp=m.timestamp,
                         host_to_device_transfer_rate=m.host_to_device_transfer_rate,
                         device_to_host_transfer_rate=m.device_to_host_transfer_rate,
                     )
@@ -205,10 +193,10 @@ class Runner:
                 psutil_process=psutil_process,
                 pid=psutil_process.pid,
                 command=psutil_process.cmdline(),
-                spawned_at_iteration=self.__iteration,
+                started_between_timestamps=(self.__previous_timestamp, self.__timestamp),
+                terminated_between_timestamps=None,
                 children=[],  # We'll detect children in the next iteration
                 instant_metrics=[],  # We'll gather the first instant metrics in the next iteration
-                terminated_at_iteration=None,
             )
             self.__monitored_processes[psutil_process.pid] = child
             parent = psutil_process.ppid()
@@ -218,8 +206,16 @@ class Runner:
 
         def __run_monitoring_iteration(self):
             # Start sub-processes as early as possible to give them time to run while we do other stuff
-            nvidia_smi_dmon = subprocess.Popen(["nvidia-smi", "dmon", "-c", "1", "-s", "t"], stdout=subprocess.PIPE, universal_newlines=True)
-            nvidia_smi_pmon = subprocess.Popen(["nvidia-smi", "pmon", "-c", "1", "-s", "um"], stdout=subprocess.PIPE, universal_newlines=True)
+            nvidia_smi_dmon = subprocess.Popen(
+                ["nvidia-smi", "dmon", "-c", "1", "-s", "t"],
+                stdout=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            nvidia_smi_pmon = subprocess.Popen(
+                ["nvidia-smi", "pmon", "-c", "1", "-s", "um"],
+                stdout=subprocess.PIPE,
+                universal_newlines=True,
+            )
 
             for process in list(self.__monitored_processes.values()):
                 try:
@@ -247,7 +243,7 @@ class Runner:
                 process = self.__monitored_processes.get(pid)
                 if process is not None and len(process.instant_metrics) != 0:
                     metrics = process.instant_metrics[-1]
-                    if metrics.iteration == self.__iteration:
+                    if metrics.timestamp == self.__timestamp:
                         try:
                             metrics.gpu_percent = float(parts[3])
                         except ValueError:
@@ -270,19 +266,18 @@ class Runner:
             assert len(lines) == 3  # Only a single device is supported
             parts = lines[2].split()
 
-            self.__system_instant_metrics.append(InProgressSystemInstantMetrics(
-                iteration=self.__iteration,
+            self.__system_instant_metrics.append(SystemInstantMetrics(
+                timestamp=self.__timestamp,
                 host_to_device_transfer_rate=float(parts[1]),
                 device_to_host_transfer_rate=float(parts[2]),
             ))
-
 
         def __gather_instant_metrics(self, process):
             try:
                 with process.psutil_process.oneshot():
                     cpu_times = process.psutil_process.cpu_times()
                     process.instant_metrics.append(InProgressInstantRunMetrics(
-                        iteration=self.__iteration,
+                        timestamp=self.__timestamp,
                         threads=process.psutil_process.num_threads(),
                         cpu_percent=process.psutil_process.cpu_percent(),
                         user_time=cpu_times.user,
@@ -295,7 +290,7 @@ class Runner:
                         gpu_memory=None,
                     ))
             except psutil.AccessDenied:
-                logging.warn(f"Exception 'psutil.AccessDenied' occurred. Instant metrics for {process.command} will be missing at t={self.__iteration * self.__interval}s.")
+                logging.warn(f"Exception 'psutil.AccessDenied' occurred. Instant metrics for {process.command} will be missing at t={self.__timestamp}s.")
 
         def __gather_children(self, process):
             for child in process.psutil_process.children():
@@ -303,27 +298,25 @@ class Runner:
                     self.__start_monitoring_process(child)
 
         def __stop_monitoring_process(self, process):
-            process.terminated_at_iteration = self.__iteration
+            process.terminated_between_timestamps = (self.__previous_timestamp, self.__timestamp)
             del self.__monitored_processes[process.pid]
 
         def __terminate(self):
             self.__usage_after = resource.getrusage(resource.RUSAGE_CHILDREN)
             for process in self.__monitored_processes.values():
-                if process.terminated_at_iteration is None:
-                    process.terminated_at_iteration = self.__iteration
+                if process.terminated_between_timestamps is None:
+                    process.terminated_between_timestamps = (self.__previous_timestamp, self.__timestamp)
 
         def __return_main_process(self, process, exit_code):
-            spawned_at = process.spawned_at_iteration * self.__interval
-            terminated_at = process.terminated_at_iteration * self.__interval
             return MainProcess(
-                command=process.command,
-                spawned_at=spawned_at,
-                terminated_at=terminated_at,
+                command=self.__command,
+                pid=process.psutil_process.pid,
+                started_between_timestamps=process.started_between_timestamps,
+                terminated_between_timestamps=process.terminated_between_timestamps,
                 instant_metrics=self.__return_instant_metrics(process),
                 children=[self.__return_process(child) for child in process.children],
                 exit_code=exit_code,
                 global_metrics=MainProcessGlobalMetrics(
-                    duration=terminated_at - spawned_at,
                     # According to https://manpages.debian.org/bullseye/manpages-dev/getrusage.2.en.html,
                     # we don't care about these fields:
                     #   ru_ixrss ru_idrss ru_isrss ru_nswap ru_msgsnd ru_msgrcv ru_nsignals
@@ -343,7 +336,7 @@ class Runner:
         def __return_instant_metrics(self, process):
             return [
                 InstantRunMetrics(
-                    timestamp=m.iteration * self.__interval,
+                    timestamp=m.timestamp,
                     threads=m.threads,
                     cpu_percent=m.cpu_percent,
                     user_time=m.user_time,
@@ -359,15 +352,11 @@ class Runner:
             ]
 
         def __return_process(self, process):
-            spawned_at = process.spawned_at_iteration * self.__interval
-            terminated_at = process.terminated_at_iteration * self.__interval
             return Process(
                 command=process.command,
-                spawned_at=spawned_at,
-                terminated_at=terminated_at,
+                pid=process.psutil_process.pid,
+                started_between_timestamps=process.started_between_timestamps,
+                terminated_between_timestamps=process.terminated_between_timestamps,
                 instant_metrics=self.__return_instant_metrics(process),
                 children=[self.__return_process(child) for child in process.children],
-                global_metrics=GlobalMetrics(
-                    duration=terminated_at - spawned_at,
-                )
             )

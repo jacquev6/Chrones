@@ -61,26 +61,66 @@ def report():
     with open("run-result.pickle", "rb") as f:
         results : RunResults = pickle.load(f)
 
-    fig, ax = plt.subplots(1, 1)
+    origin_timestamp = results.main_process.started_between_timestamps[0]
+
+    fig, axes = plt.subplots(
+        2, 1, squeeze=True,
+        sharex=True,
+    )
+    (chrones_ax, cpu_ax) = axes
+
+    chrones_ticks_ys = []
+    chrones_ticks_labels = []
+    process_index = 0
+    def plot_chrones(process: Process):
+        nonlocal chrones_ticks_ys
+        nonlocal chrones_ticks_labels
+        nonlocal process_index
+        # print(process.command, process.started_between_timestamps[0], process.started_between_timestamps[1], process.terminated_between_timestamps)
+        chrones_ax.broken_barh(
+            [(process.started_between_timestamps[0] - origin_timestamp, process.started_between_timestamps[1] - process.started_between_timestamps[0])],
+            (process_index, 1),
+            color="grey"
+        )
+        chrones_ax.broken_barh(
+            [(process.started_between_timestamps[1] - origin_timestamp, process.terminated_between_timestamps[0] - process.started_between_timestamps[1])],
+            (process_index, 1),
+            color="blue"
+        )
+        chrones_ax.broken_barh(
+            [(process.terminated_between_timestamps[0] - origin_timestamp, process.terminated_between_timestamps[1] - process.terminated_between_timestamps[0])],
+            (process_index, 1),
+            color="grey"
+        )
+        chrones_ticks_ys.append(process_index + 0.5)
+        chrones_ticks_labels.append(shlex.join(process.command)[-40:] or "*empty*")
+        # chrones_ticks_labels.append(process.pid)
+        process_index += 2
+        for child_process in process.children:
+            plot_chrones(child_process)
+
+    plot_chrones(results.main_process)
+    chrones_ax.set_yticks(chrones_ticks_ys, labels=chrones_ticks_labels)
+
 
     def plot_cpu(process: Process):
         metrics = process.instant_metrics
-        ax.plot(
-            [m.timestamp for m in metrics],
+        cpu_ax.plot(
+            [m.timestamp - origin_timestamp for m in metrics],
             [m.cpu_percent for m in metrics],
             ".-",
-            label=shlex.join(process.command) or "*empty*",
+            label=shlex.join(process.command)[-40:] or "*empty*",
+            # label=process.pid,
         )
         for child_process in process.children:
             plot_cpu(child_process)
 
     plot_cpu(results.main_process)
-
-    ax.legend()
-    ax.set_xlim(left=0)
-    ax.set_xlabel("Time (s)")
-    ax.set_ylim(bottom=0)
-    ax.set_ylabel("CPU (%)")
+    cpu_ax.legend()
+    cpu_ax.set_xlim(left=0)
+    cpu_ax.set_xlabel("Time (s)")
+    cpu_ax.set_ylim(bottom=0)
+    cpu_ax.set_ylabel("CPU (%)")
 
     fig.savefig("example.png", dpi=120)
     plt.close(fig)

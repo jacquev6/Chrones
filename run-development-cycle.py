@@ -84,7 +84,11 @@ def build_example_from_readme():
                 f.write(file_contents)
             os.chmod(file_path, 0o755)
 
-    for phase in ["build", "run", "report"]:
+    for phase in [
+        "build",
+        "run",
+        "report",
+    ]:
         subprocess.run([f"./{phase}.sh"], cwd="example", check=True)
 
 

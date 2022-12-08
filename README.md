@@ -211,14 +211,14 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 As a complete example, here is the shell script that the image at the top of this Readme is about:
 
+<!-- @todo Add Chrones to example.sh -->
+
 <!-- START example.sh -->
     # File name: example.sh
 
-    source <(chrones shell activate example)
-
-    chrones_start call-single
+    sleep 0.5
     ./single
-    chrones_stop
+    sleep 0.7
 <!-- STOP -->
 
 And the various executables called by the script:
@@ -238,7 +238,7 @@ And the various executables called by the script:
     void something_long() {
       CHRONE();
 
-      for (int i = 0; i < 512; ++i) {
+      for (int i = 0; i < 256; ++i) {
         volatile double x = 3.14;
         for (int j = 0; j != 1'000'000; ++j) {
           x = x * j;
@@ -257,7 +257,7 @@ And the various executables called by the script:
 
       {
         CHRONE("loop");
-        for (int i = 0; i != 3; ++i) {
+        for (int i = 0; i != 2; ++i) {
           CHRONE("iteration", i);
 
           something_else();
@@ -286,6 +286,12 @@ And the report is created like this:
 <!-- START report.sh -->
     chrones report
 <!-- STOP -->
+
+# Known limitations
+
+## Non-monotonous system clock
+
+Leap seconds are not handled well.
 
 # Developing Chrones itself
 
