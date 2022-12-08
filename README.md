@@ -211,14 +211,24 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 As a complete example, here is the shell script that the image at the top of this Readme is about:
 
-<!-- @todo Add Chrones to example.sh -->
-
 <!-- START example.sh -->
     # File name: example.sh
 
+    source <(chrones shell activate example)
+
+
+    chrones_start sleep-then-run-single
     sleep 0.5
+
+    chrones_start run-single
     ./single
+    chrones_stop
+
+    chrones_stop
+
+    chrones_start sleep
     sleep 0.7
+    chrones_stop
 <!-- STOP -->
 
 And the various executables called by the script:
