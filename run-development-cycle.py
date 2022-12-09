@@ -35,6 +35,8 @@ def main(args):
     # @todo Run ad-hoc check for copyright lines in all files
     # @todo Run ad-hoc check for "from __future__ import" in all Python files
     # @todo Run integration tests
+    # @todo Sort Python imports
+    # @todo Sort C++ includes
     build_example_from_readme(quick=quick)
 
 

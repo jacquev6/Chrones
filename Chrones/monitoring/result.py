@@ -2,12 +2,12 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
-import csv
-import glob
 
-import pickle
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+import csv
 import dataclasses
+import glob
+import pickle
 import shlex
 import unittest
 
