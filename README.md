@@ -299,11 +299,18 @@ And the report is created like this:
 
 # Known limitations
 
+## Impacts of instrumentation
+
+Adding instrumentation to your program will change what's observed by the monitoring:
+
+- data is continuously output to the log file and this is visible in the "I/O" graph of the report
+- in C++, an additional thread is launched in your process, visible in the "Threads" graph
+
 ## Non-monotonous system clock
 
-Leap seconds are not handled well.
+*Chrones* does not handle Leap seconds well. But who does, really?
 
-# Developing Chrones itself
+# Developing *Chrones* itself
 
 Dependencies:
 - a reasonably recent version of Docker
