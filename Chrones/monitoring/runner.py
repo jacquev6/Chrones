@@ -196,6 +196,8 @@ class Runner:
             assert parts[1] == "rxpci"
             assert parts[2] == "txpci"
 
+            # @todo Support machines with no GPU
+            # @todo Support machines with multiple GPUs
             assert len(lines) == 3  # Only a single device is supported
             parts = lines[2].split()
 

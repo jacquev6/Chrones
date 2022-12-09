@@ -220,6 +220,8 @@ As a complete example, here is the shell script that the image at the top of thi
     chrones_start sleep-then-run-single
     sleep 0.5
 
+    dd status=none if=/dev/random of=in.dat bs=1M count=3
+
     chrones_start run-single
     ./single
     chrones_stop
@@ -237,6 +239,7 @@ And the various executables called by the script:
     // File name: single.cpp
 
     #include <chrono>
+    #include <fstream>
     #include <thread>
 
     #include <chrones.hpp>
@@ -244,6 +247,22 @@ And the various executables called by the script:
     using namespace std::chrono_literals;
 
     CHRONABLE("single");
+
+    void do_some_ios() {
+      CHRONE();
+
+      char megabyte[1024 * 1024];
+
+      std::ifstream in("in.dat");
+
+      for (int i = 0; i != 4; ++i) {
+        in.read(megabyte, sizeof(megabyte));
+        std::this_thread::sleep_for(500ms);
+        std::ofstream out("out.dat");
+        out.write(megabyte, sizeof(megabyte));
+        std::this_thread::sleep_for(500ms);
+      }
+    }
 
     void something_long() {
       CHRONE();
@@ -264,6 +283,8 @@ And the various executables called by the script:
 
     int main() {
       CHRONE();
+
+      do_some_ios();
 
       {
         // @todo CHRONE("loop");
@@ -304,11 +325,17 @@ And the report is created like this:
 Adding instrumentation to your program will change what's observed by the monitoring:
 
 - data is continuously output to the log file and this is visible in the "I/O" graph of the report
+- the log file is also counted in the "Open files" graph
 - in C++, an additional thread is launched in your process, visible in the "Threads" graph
 
 ## Non-monotonous system clock
 
 *Chrones* does not handle Leap seconds well. But who does, really?
+
+## Multiple GPUs
+
+Machines with more than one GPU are not supported
+<!-- @todo Support machines with several GPUs? -->
 
 # Developing *Chrones* itself
 
