@@ -1,7 +1,10 @@
-# Copyright 2022 Vincent Jacques
+# Copyright 2020-2022 Laurent Cabaret
+# Copyright 2020-2022 Vincent Jacques
+
+from __future__ import annotations
 
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import dataclasses
 import resource
@@ -10,10 +13,16 @@ import time
 
 import psutil
 
+from .result import (
+    RunResults,
+    System, SystemInstantMetrics,
+    MainProcess, MainProcessGlobalMetrics,
+    Process, ProcessInstantMetrics,
+)
 
 
 @dataclasses.dataclass
-class InProgressInstantRunMetrics:
+class InProgressProcessInstantMetrics:
     timestamp: float
     threads: int
     cpu_percent: float
@@ -34,78 +43,8 @@ class InProgressProcess:
     command: List[str]
     started_between_timestamps: Tuple[float, float]
     terminated_between_timestamps: Optional[Tuple[float, float]]
-    children: List["InProgressProcess"]
-    instant_metrics: List[InProgressInstantRunMetrics]
-
-
-@dataclasses.dataclass
-class SystemInstantMetrics:
-    timestamp: float
-    host_to_device_transfer_rate: float
-    device_to_host_transfer_rate: float
-
-
-@dataclasses.dataclass
-class InstantRunMetrics:
-    timestamp: float
-    threads: int
-    cpu_percent: float
-    user_time: float
-    system_time: float
-    memory: Dict
-    open_files: int
-    io: Dict
-    context_switches: Dict
-    gpu_percent: float
-    gpu_memory: int
-
-
-@dataclasses.dataclass
-class Process:
-    command: List[str]
-    pid: int
-    started_between_timestamps: Tuple[float, float]
-    terminated_between_timestamps: Tuple[float, float]
-    instant_metrics: List[InstantRunMetrics]
-    children: List["Process"]
-
-
-@dataclasses.dataclass
-class MainProcessGlobalMetrics:
-    user_time: float
-    system_time: float
-    minor_page_faults: int
-    major_page_faults: int
-    input_blocks: int
-    output_blocks: int
-    voluntary_context_switches: int
-    involuntary_context_switches: int
-
-
-@dataclasses.dataclass
-class MainProcess(Process):
-    exit_code: int
-    global_metrics: MainProcessGlobalMetrics
-
-
-@dataclasses.dataclass
-class SystemInstantMetrics:
-    timestamp: float
-    host_to_device_transfer_rate: float
-    device_to_host_transfer_rate: float
-
-
-@dataclasses.dataclass
-class SystemMetrics:
-    instant_metrics: List[SystemInstantMetrics]
-
-
-@dataclasses.dataclass
-class RunResults:
-    system: SystemMetrics
-    main_process: MainProcess
-    stdout: Optional[str]
-    stderr: Optional[str]
+    children: List[InProgressProcess]
+    instant_metrics: List[InProgressProcessInstantMetrics]
 
 
 class Runner:
@@ -122,11 +61,10 @@ class Runner:
         return self.__Run(self.__interval, self.__allowed_missing_samples, *args, **kwds)()
 
     class __Run:
-        def __init__(self, interval, allowed_missing_samples, command, capture_output=False, **kwds):
+        def __init__(self, interval, allowed_missing_samples, command, **kwds):
             self.__interval = interval
             self.__allowed_missing_samples = allowed_missing_samples
             self.__command = command
-            self.__capture_output = capture_output
             self.__kwds = kwds
 
             self.__usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
@@ -137,8 +75,6 @@ class Runner:
         def __call__(self):
             main_process = psutil.Popen(
                 self.__command,
-                stdout=subprocess.PIPE if self.__capture_output else None,
-                stderr=subprocess.PIPE if self.__capture_output else None,
                 universal_newlines=True,
                 **self.__kwds)
             self.__timestamp = time.time()
@@ -174,7 +110,7 @@ class Runner:
                     self.__terminate()
 
             return RunResults(
-                system=SystemMetrics(instant_metrics=[
+                system=System(instant_metrics=[
                     SystemInstantMetrics(
                         timestamp=m.timestamp,
                         host_to_device_transfer_rate=m.host_to_device_transfer_rate,
@@ -183,8 +119,6 @@ class Runner:
                     for m in self.__system_instant_metrics
                 ]),
                 main_process=self.__return_main_process(main_process, main_process.psutil_process.returncode),
-                stdout=stdout,
-                stderr=stderr,
             )
 
         def __start_monitoring_process(self, psutil_process):
@@ -276,7 +210,7 @@ class Runner:
             try:
                 with process.psutil_process.oneshot():
                     cpu_times = process.psutil_process.cpu_times()
-                    process.instant_metrics.append(InProgressInstantRunMetrics(
+                    process.instant_metrics.append(InProgressProcessInstantMetrics(
                         timestamp=self.__timestamp,
                         threads=process.psutil_process.num_threads(),
                         cpu_percent=process.psutil_process.cpu_percent(),
@@ -309,7 +243,7 @@ class Runner:
 
         def __return_main_process(self, process, exit_code):
             return MainProcess(
-                command=self.__command,
+                command_list=self.__command,
                 pid=process.psutil_process.pid,
                 started_between_timestamps=process.started_between_timestamps,
                 terminated_between_timestamps=process.terminated_between_timestamps,
@@ -335,7 +269,7 @@ class Runner:
 
         def __return_instant_metrics(self, process):
             return [
-                InstantRunMetrics(
+                ProcessInstantMetrics(
                     timestamp=m.timestamp,
                     threads=m.threads,
                     cpu_percent=m.cpu_percent,
@@ -351,9 +285,9 @@ class Runner:
                 for m in process.instant_metrics
             ]
 
-        def __return_process(self, process):
+        def __return_process(self, process: InProgressProcess):
             return Process(
-                command=process.command,
+                command_list=process.command,
                 pid=process.psutil_process.pid,
                 started_between_timestamps=process.started_between_timestamps,
                 terminated_between_timestamps=process.terminated_between_timestamps,

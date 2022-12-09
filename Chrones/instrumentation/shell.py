@@ -1,6 +1,8 @@
 # Copyright 2020-2022 Laurent Cabaret
 # Copyright 2020-2022 Vincent Jacques
 
+from __future__ import annotations
+
 def activate(program_name):
     yield "chrones_stopwatch_index=0"
     yield f"chrones_filename={program_name}.$!.chrones.csv"
