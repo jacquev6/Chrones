@@ -48,7 +48,7 @@ def run_cpp_tests():
 
 
 def build_example_from_readme(quick):
-    subprocess.run([f"pip3", "install", "--editable", "."], check=True)  # @todo Remove --editable
+    subprocess.run([f"pip3", "install", "."], check=True)
 
     if quick:
         subprocess.run([f"./report.sh"], cwd="example", check=True)

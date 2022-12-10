@@ -28,7 +28,8 @@ setuptools.setup(
     author_email="vincent@vincent-jacques.net",
     license="MIT",
     install_requires=install_requires,
-    package_dir={"": "Chrones"},
+    packages=setuptools.find_packages(),
+    include_package_data=True,
     entry_points={
         "console_scripts": [
             "chrones = Chrones.command_line_interface:main",
