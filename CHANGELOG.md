@@ -32,3 +32,9 @@
 - Fix typo
 - Close a file
 - Run development cycle in a Docker container
+
+# Version 0.0.13
+
+- Don't let an outdated version in the development source tree
+- Start working on next version
+- Make sure uploaded packages are clean
