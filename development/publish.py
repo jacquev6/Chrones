@@ -21,10 +21,18 @@ def main(args):
 
 
 def check_cleanliness():
-    pass
-    # @todo Ask for confirmation if current branch is not 'main'
-    # @todo Fail if there are not-indexed changes
-    # @todo Ask for confirmation that indexed-but-not-commited changes should be included in the publish commit
+    not_indexed = subprocess.run(["git", "diff", "--stat", "--exit-code"])
+    if not_indexed.returncode != 0:
+        print("ERROR: there are non-staged changes. Please 'git add' them and retry.")
+        exit(1)
+
+    branch = subprocess.run(["git", "branch", "--show-current"], stdout=subprocess.PIPE, universal_newlines=True, check=True)
+    if branch.stdout.strip() != "main":
+        input("WARNING: you're not on branch 'main'. Press enter to proceed, Ctrl+C to cancel.")
+
+    not_commited = subprocess.run(["git", "diff", "--stat", "--staged", "--exit-code"], stdout=subprocess.DEVNULL)
+    if not_commited.returncode != 0:
+        input("WARNING: Some changes are staged but not commited. They will be included in the publication commit. Press enter to proceed, Ctrl+C to cancel.")
 
 
 def bump_version(part):
@@ -67,7 +75,7 @@ def update_changelog(old_version, new_version):
         for line in log_lines:
             f.write(f"- {line.split(' ', 1)[1]}\n")
 
-    input("Please edit CHANGELOG.md then press enter. (Ctrl+C to cancel)")
+    input("Please edit CHANGELOG.md then press enter to proceed, Ctrl+C to cancel.")
 
 
 def commit(new_version):
