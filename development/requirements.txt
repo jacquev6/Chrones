@@ -1,3 +1,0 @@
-semver
-build
-twine

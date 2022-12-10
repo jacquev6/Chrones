@@ -13,7 +13,6 @@ import re
 import subprocess
 import sys
 import textwrap
-# Please keep this script simple enough to use only the standard library
 
 
 def main(args):
@@ -42,13 +41,15 @@ def main(args):
 
 def run_cpp_tests():
     subprocess.run(
-        ["./make.sh", f"-j{max(1, multiprocessing.cpu_count() - 2)}"],
+        ["make", f"-j{max(1, multiprocessing.cpu_count() - 2)}"],
         cwd="Chrones/instrumentation/cpp",
         check=True,
     )
 
 
 def build_example_from_readme(quick):
+    subprocess.run([f"pip3", "install", "--editable", "."], check=True)  # @todo Remove --editable
+
     if quick:
         subprocess.run([f"./report.sh"], cwd="example", check=True)
         return
@@ -92,7 +93,7 @@ def build_example_from_readme(quick):
                         f.write(textwrap.dedent("""\
                             #!/bin/bash
                             set -o errexit
-                            . .venv/bin/activate
+
                         """))
                     f.write(file_contents)
                 os.chmod(file_path, 0o755)

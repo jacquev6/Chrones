@@ -7,7 +7,7 @@ set -o errexit
 cd "$(dirname "${BASH_SOURCE[0]}")/"
 
 
-image=$(docker build --quiet --build-arg UID=$(id -u) development)
+image=$(docker build --build-arg UID=$(id -u) development --quiet)
 
 docker run \
   --rm --interactive --tty \

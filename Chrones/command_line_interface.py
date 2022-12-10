@@ -50,7 +50,7 @@ def activate(program_name):
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def run(command):
     # @todo Take parameters from command-line
-    runner = Runner(interval=0.2)
+    runner = Runner(interval=0.2, clear_io_caches=False)
     result = runner.run(list(command))
     with open("run-result.pickle", "wb") as f:
         pickle.dump(result, f)
