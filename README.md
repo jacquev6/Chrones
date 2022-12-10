@@ -342,6 +342,7 @@ Machines with more than one GPU are not supported
 Dependencies:
 - a reasonably recent version of Docker
 - a reasonably recent version of Python 3
+- a reasonably recent version of Bash
 
 To build everything and run all tests:
 
@@ -354,3 +355,7 @@ To skip particularly long tests:
 Or even:
 
     ./run-development-cycle.py --quick
+
+To [bump the version number](semver.org) and publish on PyPI:
+
+    ./publish.sh [patch|minor|major]

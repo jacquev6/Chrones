@@ -25,6 +25,7 @@ setuptools.setup(
     author_email="vincent@vincent-jacuqes.net",
     license="MIT",
     install_requires=open("requirements.txt").readlines(),
+    package_dir={"": "Chrones"},
     entry_points={
         "console_scripts": [
             "chrones = Chrones.command_line_interface:main",
