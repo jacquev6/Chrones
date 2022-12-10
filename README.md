@@ -5,9 +5,9 @@ Copyright 2020-2022 Vincent Jacques
 
 *Chrones* is a software development tool to visualize runtime statistics (CPU percentage, GPU percentage, memory usage, *etc.*) about your program and correlate them with the phases of your program.
 
-It aims at being very simple to use and provide useful information out-of-the box *and* at being customizable to your specific use cases.
+It aims at being very simple to use and provide useful information out-of-the box<!-- @todo *and* at being customizable to your specific use cases -->.
 
-Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see [at the end of this Readme](#code-of-the-example-image) exactly how this image is generated):
+Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see exactly how this image is generated [at the end of this Readme](#code-of-the-example-image)):
 
 ![Example](example/example.png)
 
@@ -33,27 +33,27 @@ The monitoring part is a wrapper around your program.
 It runs your program as you instruct it to, preserving its access to the standard input and outputs, the environment, and its command-line.
 While doing so, it monitors your program's whole process tree and logs resource usage metrics.
 
-The reporting part of *Chrones* reads the logs produced by the instrumentation and monitoring, and produces human-readable reports including graphs.
+The reporting part reads the logs produced by the instrumentation and monitoring, and produces human-readable reports including graphs.
 
-The instrumentation part of *Chrones* is completely optional.
+The instrumentation part is completely optional.
 You can use the monitoring part on non-instrumented programs,
 or even on partially instrumented programs like a shell script calling an instrumented executable and a non-instrumented executable.
 The graphs produced by *Chrones*' reporting will just miss information about your program's phases.
 
 We've chosen the command-line as the main user interface for *Chrones*' to allow easy integration into your automated workflows.
-It can also be used as a Python library for advanced use-cases.
+<!-- @todo It can also be used as a Python library for advanced use-cases. -->
 
 Please note that *Chrones* currently only works on Linux.
 Furthermore, the C++ instrumentation requires g++.
 We would gladly accept contributions that extend *Chrones*' usability.
 
-*Chrones*' instrumentation libraries are available for Python, C++ and the shell language.
+*Chrones*' instrumentation libraries are available for <!-- @todo Python,--> C++ and the shell language.
 
 # Expected performance
 
 The instrumentation part of *Chrones* accurately measures and reports durations down to the millisecond.
 Its monitoring part takes samples a few times per second.
-No nanoseconds in this project; *Chrones* is well suited for programs that run for longer than a dozen seconds.
+No nanoseconds in this project; *Chrones* is well suited for programs that run at least a few seconds.
 
 Overhead introduced by *Chrones* in C++ programs is less than a second per million instrumented blocks.
 Don't use it for functions called billions of times.
@@ -66,7 +66,7 @@ The monitoring and reporting parts of *Chrones* are distributed as a [Python pac
 Install them with `pip install Chrones`.
 
 <details>
-<summary>And at the moment that's all you need.</summary>
+<summary>And at the moment that's all you need. <small>(Click the arrow for more information)</small></summary>
 
 The instrumentation parts are distributed in language-specific ways.
 
@@ -87,8 +87,8 @@ The instrumentation libraries are based on the following concepts:
 
 The *coordinator* is a single object that centralizes measurements and writes them into a log file.
 
-It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
-This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented.
+<!-- @todo It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
+This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented. -->
 
 #### Chrone
 
@@ -99,11 +99,11 @@ Multiple chrones can be nested.
 This makes them particularly suitable to instrument [structured code](https://en.wikipedia.org/wiki/Structured_programming) with blocks and functions (*i.e.* the vast majority of modern programs).
 From the log of the nested chrones, *Chrones*' reporting is able to reconstruct the evolution of the call stack(s) of the program.
 
-@todo Talk about name, label, and index
+<!-- @todo Talk about name, label, and index -->
 
-#### Mini-chrone
+<!-- @todo #### Mini-chrone -->
 
-@todo Define, explain the added value
+<!-- @todo Define, explain the added value -->
 
 ### Language-specific instructions
 
@@ -127,7 +127,7 @@ You can then use the two functions `chrones_start` and `chrones_stop` to instrum
         chrones_stop
     }
 
-@todo Name, label, and index
+<!-- @todo Name, label, and index -->
 
 #### C++
 
@@ -165,9 +165,9 @@ Then you can instrument functions and blocks using the `CHRONE` macro:
 *Chrones*' instrumentation can be statically disabled by passing `-DCHRONES_DISABLED` to the compiler.
 In that case, all macros provided by the header will be empty and your code will compile exactly as if it was not using *Chrones*.
 
-@todo Name, label, and index
+<!-- @todo Name, label, and index -->
 
-#### Python
+<!-- @todo #### Python
 
 First, import *Chrones*' decorator: `from chrones.instumentation import chrone`.
 
@@ -182,7 +182,7 @@ You can also instrument blocks that are not functions:
     with chrone("bar"):
         # Do something
 
-@todo Name, label, and index
+@todo Name, label, and index -->
 
 ## Run using `chrones run`
 
@@ -191,7 +191,7 @@ Then launch them using `chrones run -- your_program --with --its --options`.
 
 Everything before the `--` is interpreted as options for `chrones run`.
 Everything after is passed as-is to your program.
-The standard input and output are passed unchanged to your program.
+The standard input and output are passed unchanged to your program. <!-- @todo Double-check that -->
 
 Have a look at `chrones run --help` for its detailed usage.
 
@@ -201,11 +201,11 @@ Run `chrones report` to generate a report in the current directory.
 
 Have a look at `chrones report --help` for its detailed usage.
 
-## Use *Chrones* as a library
+<!-- @todo ## Use *Chrones* as a library
 
 Out of the box, *Chrones* produces generic reports and graphs, but you can customize them by using *Chrones* as a Python library.
 
-@todo Describe
+@todo Describe -->
 
 # Code of the example image
 
@@ -334,7 +334,7 @@ Adding instrumentation to your program will change what's observed by the monito
 
 ## Multiple GPUs
 
-Machines with more than one GPU are not supported
+Machines with more than one GPU are not supported.
 <!-- @todo Support machines with several GPUs? -->
 
 # Developing *Chrones* itself

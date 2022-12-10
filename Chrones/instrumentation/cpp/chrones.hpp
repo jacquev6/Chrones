@@ -4,7 +4,7 @@
 #ifndef CHRONES_HPP_
 #define CHRONES_HPP_
 
-#ifdef NO_CHRONES
+#ifdef CHRONES_DISABLED
 
 #define CHRONABLE(name)
 
