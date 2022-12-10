@@ -21,3 +21,7 @@
 # Version 0.0.10
 
 - Check that repository is clean before publishing
+
+# Version 0.0.11
+
+- Don't re-upload the same archives to PyPI
