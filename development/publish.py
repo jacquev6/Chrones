@@ -14,10 +14,11 @@ import semver
 def main(args):
     assert len(args) == 2
     check_cleanliness()
-    (old_version, new_version) = bump_version(args[1])
-    update_changelog(old_version, new_version)
-    commit(new_version)
+    new_version = bump_version(args[1])
+    update_changelog(new_version)
+    make_publication_commit(new_version)
     publish_to_pypi()
+    prepare_next_version(new_version)
 
 
 def check_cleanliness():
@@ -40,15 +41,18 @@ def bump_version(part):
         setup_lines = f.readlines()
     for line in setup_lines:
         if line.startswith("version = "):
-            old_version = semver.VersionInfo.parse(line[11:-2])
+            dev_version = semver.VersionInfo.parse(line[11:-2])
 
-    print("Last version:", old_version)
+    assert dev_version.prerelease == "dev"
+    assert dev_version.build is None
+
+    print("Last version:", dev_version)
     if part == "patch":
-        new_version = old_version.bump_patch()
+        new_version = dev_version.replace(prerelease=None)
     elif part == "minor":
-        new_version = old_version.bump_minor()
+        new_version = dev_version.bump_minor()
     elif part == "major":
-        new_version = old_version.bump_major()
+        new_version = dev_version.bump_major()
     else:
         assert False
     print("New version:", new_version)
@@ -60,12 +64,23 @@ def bump_version(part):
             else:
                 f.write(line)
 
-    return (old_version, new_version)
+    return new_version
 
 
-def update_changelog(old_version, new_version):
+def update_changelog(new_version):
+    tags = subprocess.run(
+        ["git", "tag"],
+        stdout=subprocess.PIPE, universal_newlines=True,
+        check=True,
+    ).stdout.splitlines()
+    last_tag = None
+    for tag in tags:
+        assert tag.startswith("v")
+        if last_tag is None or semver.compare(tag[1:], last_tag[1:]) > 0:
+            last_tag = tag
+
     log_lines = subprocess.run(
-        ["git", "log", "--oneline", "--no-decorate", f"v{old_version}.."],
+        ["git", "log", "--oneline", "--no-decorate", f"{last_tag}.."],
         stdout=subprocess.PIPE, universal_newlines=True,
         check=True,
     ).stdout.splitlines()
@@ -78,7 +93,7 @@ def update_changelog(old_version, new_version):
     input("Please edit CHANGELOG.md then press enter to proceed, Ctrl+C to cancel.")
 
 
-def commit(new_version):
+def make_publication_commit(new_version):
     subprocess.run(["git", "add", "setup.py", "CHANGELOG.md"], check=True)
     subprocess.run(["git", "commit", "-m", f"Publish version {new_version}"], stdout=subprocess.DEVNULL, check=True)
     subprocess.run(["git", "tag", f"v{new_version}"], check=True)
@@ -91,6 +106,23 @@ def publish_to_pypi():
     shutil.rmtree("Chrones.egg-info", ignore_errors=True)
     subprocess.run(["python3", "-m", "build"])
     subprocess.run(["twine", "upload"] + glob.glob("dist/*"))
+
+
+def prepare_next_version(new_version):
+    with open("setup.py") as f:
+        setup_lines = f.readlines()
+
+    next_version = new_version.bump_patch().replace(prerelease="dev")
+
+    with open("setup.py", "w") as f:
+        for line in setup_lines:
+            if line.startswith("version = "):
+                f.write(f"version = \"{next_version}\"\n")
+            else:
+                f.write(line)
+
+    subprocess.run(["git", "add", "setup.py"], check=True)
+    subprocess.run(["git", "commit", "-m", f"Start working on next version"], stdout=subprocess.DEVNULL, check=True)
 
 
 if __name__ == "__main__":
