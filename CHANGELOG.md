@@ -11,3 +11,6 @@
 - Graph CPU usage
 - Restore tests for the C++ instrumentation code
 - Remove outdated 'todo'
+
+# Version 0.0.8
+

@@ -63,7 +63,7 @@ def update_changelog(old_version, new_version):
     ).stdout.splitlines()
 
     with open("CHANGELOG.md", "a") as f:
-        f.write(f"# Version {new_version}\n\n")
+        f.write(f"\n# Version {new_version}\n\n")
         for line in log_lines:
             f.write(f"- {line.split(' ', 1)[1]}\n")
 
