@@ -8,7 +8,7 @@ from __future__ import annotations
 import setuptools
 
 
-version = "0.0.12"
+version = "0.0.13-dev"
 
 with open("README.md") as f:
     long_description = f.read()
