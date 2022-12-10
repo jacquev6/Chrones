@@ -14,6 +14,9 @@ with open("README.md") as f:
     long_description = f.read()
 long_description = long_description.replace("example/example.png", f"https://github.com/jacquev6/Chrones/raw/v{version}/example/example.png")
 
+with open("requirements.txt") as f:
+    install_requires = f.readlines()
+
 setuptools.setup(
     name="Chrones",
     version=version,
@@ -24,7 +27,7 @@ setuptools.setup(
     author="Vincent Jacques",
     author_email="vincent@vincent-jacuqes.net",
     license="MIT",
-    install_requires=open("requirements.txt").readlines(),
+    install_requires=install_requires,
     package_dir={"": "Chrones"},
     entry_points={
         "console_scripts": [
