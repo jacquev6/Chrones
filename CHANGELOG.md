@@ -25,3 +25,10 @@
 # Version 0.0.11
 
 - Don't re-upload the same archives to PyPI
+
+# Version 0.0.12
+
+- Make the package actually installable
+- Fix typo
+- Close a file
+- Run development cycle in a Docker container
