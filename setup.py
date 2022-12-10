@@ -25,7 +25,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jacquev6/Chrones",
     author="Vincent Jacques",
-    author_email="vincent@vincent-jacuqes.net",
+    author_email="vincent@vincent-jacques.net",
     license="MIT",
     install_requires=install_requires,
     package_dir={"": "Chrones"},
