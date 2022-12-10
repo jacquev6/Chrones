@@ -86,6 +86,7 @@ def commit(new_version):
 
 
 def publish_to_pypi():
+    shutil.rmtree("dist", ignore_errors=True)
     subprocess.run(["python3", "-m", "build"])
     subprocess.run(["twine", "upload"] + glob.glob("dist/*"))
 
