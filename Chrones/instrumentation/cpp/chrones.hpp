@@ -8,9 +8,9 @@
 
 #define CHRONABLE(name)
 
-#define CHRONE(...) do {} while (false)
+#define CHRONE(...)
 
-#define MINICHRONE(...) do {} while (false)
+#define MINICHRONE(...)
 
 #else
 
@@ -31,62 +31,6 @@
 #include <utility>
 #include <vector>
 
-
-// The Chrones library instruments your code to measure the time taken by code blocks.
-
-// Usage:
-// In your main file, use the CHRONABLE macro, giving it the base name of the csv file you want:
-//     CHRONABLE("my-exec")
-// The code above will generate `my-exec.[PID].chrones.csv` in the working directory.
-// You can then use `chrones.py report my-exec.[PID].chrones.csv` to generate a report.
-// You can also `cat my-exec.*.chrones.csv > my-exec.chrones.csv` and then
-// `chrones.py report my-exec.chrones.csv` to generate a report about several
-// executions of `my-exec`.
-
-// Then in the functions you want to instrument, use the CHRONE macro.
-// This macro accepts optional `label` and `index` parameters, in that order.
-// They can be omitted when instrumenting a whole function:
-//     void f() {
-//       CHRONE();
-//       // body
-//     }
-//
-// The `label` is useful when there are several logical blocks in the function:
-//     void f() {
-//       CHRONE();
-//       {
-//         CHRONE("block A");
-//         // block
-//       }
-//       {
-//         CHRONE("block B");
-//         // block
-//       }
-//     }
-// Note that each block must be in its own set of curly braces.
-//
-// The `index` is useful to measure several iterations of a loop:
-//     void f() {
-//       CHRONE();
-//       for (int i = 0; i != 16; ++i) {
-//         CHRONE("loop", i);
-//         // body
-//       }
-//     }
-// Note that you must add a `label` to be able to give an `index`.
-
-// To deactivate Chrones in a given file, just `#define NO_CHRONES` before `#include <chrones.hpp>`.
-// (You can also call `g++` with `-DNO_CHRONES` to deactivate Chrones in the whole project)
-
-// Known current limitations of the Chrones libraries:
-// - it uses at least one GCC extension (__VA_OPT__)
-// - it is not safe to use outside main (e.g. during initialization of global and static variables)
-// - it is not tested on recursive code. It might or might not work in that case.
-// These limitation might be removed in future versions of the library.
-
-// Troubleshooting:
-// - "undefined reference to chrones::global_coordinator": double-check you called CHRONABLE
-// - "undefined reference to chrones::<<anything else>>": double-check you linked with chrones.o
 
 namespace chrones {
 

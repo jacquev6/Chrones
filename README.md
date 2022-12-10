@@ -136,6 +136,8 @@ The header is distributed within *Chrones*' Python package.
 You can get is location with `chrones config c++ header-location`, that you can pass to the `-I` option of you compiler.
 For example, `g++ foo.cpp -I$(chrones config c++ header-location) -o foo`.
 
+<!-- @todo Document the minimal C++ version required to compile chrones.hpp -->
+
 Create the coordinator at global scope, before your `main` function:
 
     CHRONABLE("program-name")
@@ -164,6 +166,12 @@ Then you can instrument functions and blocks using the `CHRONE` macro:
 
 *Chrones*' instrumentation can be statically disabled by passing `-DCHRONES_DISABLED` to the compiler.
 In that case, all macros provided by the header will be empty and your code will compile exactly as if it was not using *Chrones*.
+
+Troubleshooting: if you get an `undefined reference to chrones::global_coordinator` error, please double-check you called `CHRONABLE`.
+
+Known limitations:
+
+- `CHRONE` cannot be used outside `main`, *e.g.* in constructors and destructors of static variables
 
 <!-- @todo Name, label, and index -->
 
