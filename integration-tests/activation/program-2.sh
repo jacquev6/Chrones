@@ -3,7 +3,7 @@
 set -o errexit
 
 
-source <(chrones shell enable program-2)
+source <(chrones instrument shell enable program-2)
 
 
 chrones_start foo

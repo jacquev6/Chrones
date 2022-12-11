@@ -15,39 +15,39 @@ from .monitoring.runner import Runner
 from .reporting.graph import make_graph
 
 
-@click.group
+@click.group(help="Chrones is a software development tool to visualize runtime statistics about your program and correlate them with the phases of your program. Please visit https://github.com/jacquev6/Chrones for more details.")
 def main():
     pass
 
 
-@main.group
-def config():
+@main.group(help="Everything related to instrumentation.")
+def instrument():
     pass
 
 
-@config.group(name="c++")
+@instrument.group(name="c++", help="Instrumentation of C++ programs.")
 def cpp():
     pass
 
 
-@cpp.command
+@cpp.command(help="Display the location of the C++ header(s). Use as 'g++ -I$(chrones instrument c++ header-location)'.")
 def header_location():
     print(cpp_instrumentation.location())
 
 
-@main.group
+@instrument.group(help="Instrumentation of shell scripts.")
 def shell():
     pass
 
 
-@shell.command
+@shell.command(help="Display the 'chrones_*' shell fonctions. Use as 'source <(chrones instrument shell enable PROGRAM_NAME)'.")
 @click.argument("program-name")
 def enable(program_name):
     for line in shell_instrumentation.enable(program_name):
         print(line)
 
 
-@main.command
+@main.command(help="Run a program under Chrones' monitoring. Add a '--' before the command if you need to pass options to the command.")
 @click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def run(logs_dir, command):
@@ -59,6 +59,6 @@ def run(logs_dir, command):
     # @todo Propagate exit code
 
 
-@main.command
+@main.command(help="Create a human-readable image from monitoring logs.")
 def report():
     make_graph("example.png")

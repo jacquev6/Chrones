@@ -11,7 +11,7 @@ rm -f *.chrones.csv
 
 
 # De-activated during compilation
-g++ -std=gnu++11 program-1.cpp -I$(chrones config c++ header-location) -DCHRONES_DISABLED -o program-1
+g++ -std=gnu++11 program-1.cpp -I$(chrones instrument c++ header-location) -DCHRONES_DISABLED -o program-1
 
 # Standalone: no log
 ./program-1
@@ -29,7 +29,7 @@ fi
 
 
 # Activated during compilation
-g++ -std=gnu++11 program-1.cpp -I$(chrones config c++ header-location) -o program-1
+g++ -std=gnu++11 program-1.cpp -I$(chrones instrument c++ header-location) -o program-1
 
 # Standalone: still no log
 ./program-1

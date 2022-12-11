@@ -1,0 +1,9 @@
+Usage: chrones instrument shell [OPTIONS] COMMAND [ARGS]...
+
+  Instrumentation of shell scripts.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  enable  Display the 'chrones_*' shell fonctions.

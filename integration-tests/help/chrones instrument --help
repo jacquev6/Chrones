@@ -1,0 +1,10 @@
+Usage: chrones instrument [OPTIONS] COMMAND [ARGS]...
+
+  Everything related to instrumentation.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  c++    Instrumentation of C++ programs.
+  shell  Instrumentation of shell scripts.

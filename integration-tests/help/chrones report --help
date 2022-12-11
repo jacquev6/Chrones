@@ -1,0 +1,6 @@
+Usage: chrones report [OPTIONS]
+
+  Create a human-readable image from monitoring logs.
+
+Options:
+  --help  Show this message and exit.

@@ -113,7 +113,7 @@ The *Chrones* instrumentation library is currently available for the following l
 
 First, import *Chrones* and initialize the coordinator with:
 
-    source <(chrones shell enable program-name)
+    source <(chrones instrument shell enable program-name)
 
 where `program-name` is... the name of your program.
 
@@ -133,8 +133,8 @@ You can then use the two functions `chrones_start` and `chrones_stop` to instrum
 
 First, `#include <chrones.hpp>`.
 The header is distributed within *Chrones*' Python package.
-You can get is location with `chrones config c++ header-location`, that you can pass to the `-I` option of you compiler.
-For example, `g++ foo.cpp -I$(chrones config c++ header-location) -o foo`.
+You can get is location with `chrones instrument c++ header-location`, that you can pass to the `-I` option of you compiler.
+For example, `g++ -I$(chrones instrument c++ header-location) foo.cpp -o foo`.
 
 <!-- @todo Document the minimal C++ version required to compile chrones.hpp -->
 
@@ -222,7 +222,7 @@ As a complete example, here is the shell script that the image at the top of thi
 <!-- START example.sh -->
     # File name: example.sh
 
-    source <(chrones shell enable example)
+    source <(chrones instrument shell enable example)
 
 
     chrones_start sleep-then-run-single
@@ -311,7 +311,7 @@ And the various executables called by the script:
 This code is built using these commands:
 
 <!-- START build.sh -->
-    g++ -std=c++2a -O3 -I$(chrones config c++ header-location) single.cpp -o single
+    g++ -std=c++2a -O3 -I$(chrones instrument c++ header-location) single.cpp -o single
 <!-- STOP -->
 
 It's executed like this:

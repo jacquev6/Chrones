@@ -1,0 +1,7 @@
+Usage: chrones instrument shell enable [OPTIONS] PROGRAM_NAME
+
+  Display the 'chrones_*' shell fonctions. Use as 'source <(chrones instrument
+  shell enable PROGRAM_NAME)'.
+
+Options:
+  --help  Show this message and exit.
