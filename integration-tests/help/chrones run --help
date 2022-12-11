@@ -5,5 +5,5 @@ Usage: chrones run [OPTIONS] [COMMAND]...
 
 Options:
   --logs-dir TEXT  Directory where instrumentation and monitoring logs will be
-                   stored
+                   stored.
   --help           Show this message and exit.

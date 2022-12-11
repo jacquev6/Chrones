@@ -9,7 +9,7 @@ It aims at being very simple to use and provide useful information out-of-the bo
 
 Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see exactly how this image is generated [at the end of this Readme](#code-of-the-example-image)):
 
-![Example](example/example.png)
+![Example](example/report.png)
 
 *Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/en/publications/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
 

@@ -48,7 +48,7 @@ def enable(program_name):
 
 
 @main.command(help="Run a program under Chrones' monitoring. Add a '--' before the command if you need to pass options to the command.")
-@click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored")
+@click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored.")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def run(logs_dir, command):
     # @todo Take parameters from command-line
@@ -60,5 +60,9 @@ def run(logs_dir, command):
 
 
 @main.command(help="Create a human-readable image from monitoring logs.")
-def report():
-    make_graph("example.png")
+@click.option("--logs-dir", default=".", help="Directory containing instrumentation and monitoring logs.")
+@click.option("--output-name", default="report.png", help="Output name for the report.")
+def report(logs_dir, output_name):
+    output_name = os.path.abspath(output_name)
+    os.chdir(logs_dir)
+    make_graph(output_name)
