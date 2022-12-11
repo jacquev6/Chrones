@@ -41,8 +41,8 @@ def shell():
 
 @shell.command
 @click.argument("program-name")
-def activate(program_name):
-    for line in shell_instrumentation.activate(program_name):
+def enable(program_name):
+    for line in shell_instrumentation.enable(program_name):
         print(line)
 
 
