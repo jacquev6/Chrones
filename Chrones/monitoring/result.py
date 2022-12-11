@@ -19,10 +19,10 @@ class ProcessInstantMetrics:
     cpu_percent: float
     user_time: float
     system_time: float
-    memory: Dict  # @todo Refine
+    memory: Dict  # @todo(v1.0.0) Refine
     open_files: int
-    io: Dict  # @todo Refine
-    context_switches: Dict  # @todo Refine
+    io: Dict  # @todo(v1.0.0) Refine
+    context_switches: Dict  # @todo(v1.0.0) Refine
     gpu_percent: float
     gpu_memory: int
 

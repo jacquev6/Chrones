@@ -8,7 +8,7 @@ import pickle
 
 import click
 
-# @todo How could I refer to these as `instrumentation.shell` and `instrumentation.cpp`?
+# @todo(later) How could I refer to these as `instrumentation.shell` and `instrumentation.cpp`?
 from .instrumentation import shell as shell_instrumentation
 from .instrumentation import cpp as cpp_instrumentation
 from .monitoring.runner import Runner
@@ -51,12 +51,12 @@ def enable(program_name):
 @click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored.")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def run(logs_dir, command):
-    # @todo Take parameters from command-line
+    # @todo(v1.0.0) Take parameters from command-line
     runner = Runner(interval=0.2, logs_directory=logs_dir, clear_io_caches=False)
     result = runner.run(list(command))
     with open(os.path.join(logs_dir, "run-result.pickle"), "wb") as f:
         pickle.dump(result, f)
-    # @todo Propagate exit code
+    # @todo(v1.0.0) Propagate exit code
 
 
 @main.command(help="Create a human-readable image from monitoring logs.")

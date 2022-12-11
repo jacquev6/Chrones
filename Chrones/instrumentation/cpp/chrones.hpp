@@ -106,7 +106,7 @@ class StreamStatistics {
   double _m2n;
 
   // Temporary, for median, until we
-  // @todo implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
+  // @todo(later) implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
   mutable std::vector<float> _samples;
 };
 
@@ -324,7 +324,6 @@ class coordinator_tmpl {
   }
 
  public:
-  // @todo Add logs of level TRACE
   void start_heavy_stopwatch(
     const char* function
   ) {

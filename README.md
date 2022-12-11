@@ -5,7 +5,7 @@ Copyright 2020-2022 Vincent Jacques
 
 *Chrones* is a software development tool to visualize runtime statistics (CPU percentage, GPU percentage, memory usage, *etc.*) about your program and correlate them with the phases of your program.
 
-It aims at being very simple to use and provide useful information out-of-the box<!-- @todo *and* at being customizable to your specific use cases -->.
+It aims at being very simple to use and provide useful information out-of-the box<!-- @todo(later) *and* at being customizable to your specific use cases -->.
 
 Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see exactly how this image is generated [at the end of this Readme](#code-of-the-example-image)):
 
@@ -18,7 +18,7 @@ Its [documentation and source code](https://github.com/jacquev6/Chrones) are on 
 
 Questions? Remarks? Bugs? Want to contribute? Open [an issue](https://github.com/jacquev6/Chrones/issues) or [a discussion](https://github.com/jacquev6/Chrones/discussions)!
 
-<!-- @todo Insert paragraph about Chrones' clients? -->
+<!-- @todo(later) Insert paragraph about Chrones' clients? -->
 
 # Conceptual overview
 
@@ -41,13 +41,13 @@ or even on partially instrumented programs like a shell script calling an instru
 The graphs produced by *Chrones*' reporting will just miss information about your program's phases.
 
 We've chosen the command-line as the main user interface for *Chrones*' to allow easy integration into your automated workflows.
-<!-- @todo It can also be used as a Python library for advanced use-cases. -->
+<!-- @todo(later) It can also be used as a Python library for advanced use-cases. -->
 
 Please note that *Chrones* currently only works on Linux.
 Furthermore, the C++ instrumentation requires g++.
 We would gladly accept contributions that extend *Chrones*' usability.
 
-*Chrones*' instrumentation libraries are available for <!-- @todo Python,--> C++ and the shell language.
+*Chrones*' instrumentation libraries are available for <!-- @todo(later) Python,--> C++ and the shell language.
 
 # Expected performance
 
@@ -99,11 +99,11 @@ Multiple chrones can be nested.
 This makes them particularly suitable to instrument [structured code](https://en.wikipedia.org/wiki/Structured_programming) with blocks and functions (*i.e.* the vast majority of modern programs).
 From the log of the nested chrones, *Chrones*' reporting is able to reconstruct the evolution of the call stack(s) of the program.
 
-<!-- @todo Talk about name, label, and index -->
+<!-- @todo(v1.0.0) Talk about name, label, and index -->
 
-<!-- @todo #### Mini-chrone -->
+<!-- @todo(v1.0.0) #### Mini-chrone -->
 
-<!-- @todo Define, explain the added value -->
+<!-- @todo(v1.0.0) Define, explain the added value -->
 
 ### Language-specific instructions
 
@@ -127,7 +127,7 @@ You can then use the two functions `chrones_start` and `chrones_stop` to instrum
         chrones_stop
     }
 
-<!-- @todo Name, label, and index -->
+<!-- @todo(v1.0.0) Name, label, and index -->
 
 #### C++
 
@@ -136,7 +136,7 @@ The header is distributed within *Chrones*' Python package.
 You can get is location with `chrones instrument c++ header-location`, that you can pass to the `-I` option of you compiler.
 For example, `g++ -I$(chrones instrument c++ header-location) foo.cpp -o foo`.
 
-<!-- @todo Document the minimal C++ version required to compile chrones.hpp -->
+<!-- @todo(v1.0.0) Document the minimal C++ version required to compile chrones.hpp -->
 
 Create the coordinator at global scope, before your `main` function:
 
@@ -173,9 +173,9 @@ Known limitations:
 
 - `CHRONE` cannot be used outside `main`, *e.g.* in constructors and destructors of static variables
 
-<!-- @todo Name, label, and index -->
+<!-- @todo(v1.0.0) Name, label, and index -->
 
-<!-- @todo #### Python
+<!-- @todo(later) #### Python
 
 First, import *Chrones*' decorator: `from chrones.instumentation import chrone`.
 
@@ -190,7 +190,7 @@ You can also instrument blocks that are not functions:
     with chrone("bar"):
         # Do something
 
-@todo Name, label, and index -->
+@todo(later) Name, label, and index -->
 
 ## Run using `chrones run`
 
@@ -199,7 +199,7 @@ Then launch them using `chrones run -- your_program --with --its --options`.
 
 Everything before the `--` is interpreted as options for `chrones run`.
 Everything after is passed as-is to your program.
-The standard input and output are passed unchanged to your program. <!-- @todo Double-check that -->
+The standard input and output are passed unchanged to your program. <!-- @todo(v1.0.0) Double-check that in an integration test -->
 
 Have a look at `chrones run --help` for its detailed usage.
 
@@ -209,11 +209,9 @@ Run `chrones report` to generate a report in the current directory.
 
 Have a look at `chrones report --help` for its detailed usage.
 
-<!-- @todo ## Use *Chrones* as a library
+<!-- @todo(later) ## Use *Chrones* as a library
 
-Out of the box, *Chrones* produces generic reports and graphs, but you can customize them by using *Chrones* as a Python library.
-
-@todo Describe -->
+Out of the box, *Chrones* produces generic reports and graphs, but you can customize them by using *Chrones* as a Python library. -->
 
 # Code of the example image
 
@@ -295,9 +293,9 @@ And the various executables called by the script:
       do_some_ios();
 
       {
-        // @todo CHRONE("loop");
+        // @todo(v1.0.0) CHRONE("loop");
         for (int i = 0; i != 2; ++i) {
-          // @todo CHRONE("iteration", i);
+          // @todo(v1.0.0) CHRONE("iteration", i);
 
           something_else();
           something_long();
@@ -343,7 +341,7 @@ Adding instrumentation to your program will change what's observed by the monito
 ## Multiple GPUs
 
 Machines with more than one GPU are not supported.
-<!-- @todo Support machines with several GPUs? -->
+<!-- @todo(later) Support machines with several GPUs? -->
 
 # Developing *Chrones* itself
 

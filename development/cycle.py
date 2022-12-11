@@ -32,12 +32,12 @@ def main(args):
     ############################
 
     run_cpp_tests()
-    # @todo Run Python tests (python3 -m unittest discover --pattern '*.py')
-    # @todo Run Python linter
-    # @todo Run ad-hoc check for copyright lines in all files
-    # @todo Run ad-hoc check for "from __future__ import" in all Python files
-    # @todo Sort Python imports
-    # @todo Sort C++ includes
+    # @todo(v1.0.0) Run Python tests (python3 -m unittest discover --pattern '*.py')
+    # @todo(later) Run Python linter
+    # @todo(v1.0.0) Run ad-hoc check for copyright lines in all files
+    # @todo(later) Run ad-hoc check for "from __future__ import" in all Python files
+    # @todo(later) Sort Python imports
+    # @todo(later) Sort C++ includes
 
     # With Chrones installed
     ########################

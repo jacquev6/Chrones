@@ -7,5 +7,5 @@ import os.path
 
 
 def location():
-    # @todo Switch to https://setuptools.pypa.io/en/latest/userguide/datafiles.html#accessing-data-files-at-runtime
+    # @todo(later) Switch to https://setuptools.pypa.io/en/latest/userguide/datafiles.html#accessing-data-files-at-runtime
     return os.path.dirname(__file__)
