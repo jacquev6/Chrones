@@ -212,3 +212,13 @@ TEST(ChronesTest, Index) {
     "0,0,0,sw_start,\"f\",\"label\",42\n"
     "0,0,0,sw_stop\n");
 }
+
+TEST(ChronesTest, NullCoordinator) {
+  // These are all no-ops, so we just check for bad memory accesses
+  heavy_stopwatch(nullptr, "name");
+  heavy_stopwatch(nullptr, "name", "label");
+  heavy_stopwatch(nullptr, "name", "label", 42);
+  light_stopwatch(nullptr, "name");
+  light_stopwatch(nullptr, "name", "label");
+  light_stopwatch(nullptr, "name", "label", 42);
+}

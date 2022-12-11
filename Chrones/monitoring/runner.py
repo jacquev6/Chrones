@@ -2,6 +2,7 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
+import os
 
 from typing import List, Optional, Tuple
 import dataclasses
@@ -52,19 +53,18 @@ class Runner:
         self.__allowed_missing_samples = allowed_missing_samples
         self.__clear_io_caches = clear_io_caches
 
-    def run(self, *args, **kwds):
+    def run(self, command):
         if self.__clear_io_caches:
             # https://stackoverflow.com/a/25336215/905845
             subprocess.run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches", shell=True, check=True, capture_output=True)
 
-        return self.__Run(self.__interval, self.__allowed_missing_samples, *args, **kwds)()
+        return self.__Run(self.__interval, self.__allowed_missing_samples, command)()
 
     class __Run:
-        def __init__(self, interval, allowed_missing_samples, command, **kwds):
+        def __init__(self, interval, allowed_missing_samples, command):
             self.__interval = interval
             self.__allowed_missing_samples = allowed_missing_samples
             self.__command = command
-            self.__kwds = kwds
 
             self.__usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
             self.__monitored_processes = {}
@@ -72,10 +72,12 @@ class Runner:
             self.__usage_after = None
 
         def __call__(self):
+            env = dict(os.environ)
+            env["CHRONES_ENABLED"] = "true"
             main_process = psutil.Popen(
                 self.__command,
-                universal_newlines=True,
-                **self.__kwds)
+                env=env,
+            )
             self.__timestamp = time.time()
             self.__previous_timestamp = self.__timestamp
             spawn_time = self.__timestamp

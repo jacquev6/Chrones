@@ -87,8 +87,8 @@ The instrumentation libraries are based on the following concepts:
 
 The *coordinator* is a single object that centralizes measurements and writes them into a log file.
 
-<!-- @todo It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
-This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented. -->
+It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
+This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented.
 
 #### Chrone
 

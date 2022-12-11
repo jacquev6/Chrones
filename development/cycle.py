@@ -28,14 +28,23 @@ def main(args):
         long = False
         quick = False
 
+    # With Chrones NOT installed
+    ############################
+
     run_cpp_tests()
     # @todo Run Python tests (python3 -m unittest discover --pattern '*.py')
     # @todo Run Python linter
     # @todo Run ad-hoc check for copyright lines in all files
     # @todo Run ad-hoc check for "from __future__ import" in all Python files
-    # @todo Run integration tests
     # @todo Sort Python imports
     # @todo Sort C++ includes
+
+    # With Chrones installed
+    ########################
+
+    subprocess.run([f"pip3", "install", "."], stdout=subprocess.DEVNULL, check=True)
+
+    run_integration_tests()
     build_example_from_readme(quick=quick)
 
 
@@ -47,9 +56,17 @@ def run_cpp_tests():
     )
 
 
-def build_example_from_readme(quick):
-    subprocess.run([f"pip3", "install", "."], check=True)
+def run_integration_tests():
+    for test_file_name in glob.glob("integration-tests/*/run.sh"):
+        print(test_file_name)
+        subprocess.run(
+            ["./run.sh"],
+            cwd=os.path.dirname(test_file_name),
+            check=True,
+        )
 
+
+def build_example_from_readme(quick):
     if quick:
         subprocess.run([f"./report.sh"], cwd="example", check=True)
         return

@@ -14,11 +14,14 @@
 
 #else
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>  // NOLINT(build/c++11)
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -473,7 +476,9 @@ class heavy_stopwatch_tmpl {
       coordinator_tmpl<Info>* coordinator,
       const char* function) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function);
+    }
   }
 
   heavy_stopwatch_tmpl(
@@ -481,7 +486,9 @@ class heavy_stopwatch_tmpl {
       const char* function,
       const char* label) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function, label);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function, label);
+    }
   }
 
   heavy_stopwatch_tmpl(
@@ -490,11 +497,15 @@ class heavy_stopwatch_tmpl {
       const char* label,
       const int index) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function, label, index);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function, label, index);
+    }
   }
 
   ~heavy_stopwatch_tmpl() {
-    _coordinator->stop_heavy_stopwatch();
+    if (_coordinator) {
+      _coordinator->stop_heavy_stopwatch();
+    }
   }
 
   heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&) = default;
@@ -514,11 +525,13 @@ class plain_light_stopwatch_tmpl {
     const char* function) :
     _coordinator(coordinator),
     _function(function),
-    _start_time(coordinator->start_light_stopwatch())
+    _start_time(_coordinator ? _coordinator->start_light_stopwatch() : 0)
   {}
 
   ~plain_light_stopwatch_tmpl() {
-    _coordinator->stop_light_stopwatch(_function, _start_time);
+    if (_coordinator) {
+      _coordinator->stop_light_stopwatch(_function, _start_time);
+    }
   }
 
   plain_light_stopwatch_tmpl(const plain_light_stopwatch_tmpl&) = default;
@@ -542,11 +555,13 @@ class labelled_light_stopwatch_tmpl {
       _coordinator(coordinator),
       _function(function),
       _label(label),
-      _start_time(coordinator->start_light_stopwatch())
+      _start_time(_coordinator ? _coordinator->start_light_stopwatch() : 0)
   {}
 
   ~labelled_light_stopwatch_tmpl() {
-    _coordinator->stop_light_stopwatch(_function, _label, _start_time);
+    if (_coordinator) {
+      _coordinator->stop_light_stopwatch(_function, _label, _start_time);
+    }
   }
 
   labelled_light_stopwatch_tmpl(const labelled_light_stopwatch_tmpl&) = default;
@@ -621,16 +636,28 @@ inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
 
 typedef coordinator_tmpl<RealInfo> coordinator;
 
-extern coordinator global_coordinator;
+extern std::unique_ptr<coordinator> global_coordinator;
+
+std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
+  const char* const enabled = std::getenv("CHRONES_ENABLED");
+
+  if (!enabled) {
+    return nullptr;
+  }
+
+  static std::ofstream stream(
+    std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv",
+    std::ios_base::app);
+
+  // Don't use std::make_unique to support C++11
+  return std::unique_ptr<coordinator>(new coordinator(stream));
+}
 
 }  // namespace chrones
 
 #define CHRONABLE(name) \
   namespace chrones { \
-    std::ofstream global_stream( \
-      std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv", std::ios_base::app); \
-\
-    coordinator global_coordinator(global_stream); \
+    std::unique_ptr<coordinator> global_coordinator = make_global_coordinator(name); \
   }
 
 #ifdef __CUDA_ARCH__
@@ -643,11 +670,11 @@ extern coordinator global_coordinator;
 
 // Variadic macros that forwards their arguments to the appropriate constructors
 #define CHRONE(...) auto chrones_stopwatch_##__line__ = chrones::heavy_stopwatch( \
-  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
+  chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #define MINICHRONE(...) auto chrones_stopwatch_##__line__ = chrones::light_stopwatch( \
-  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
+  chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #endif
