@@ -48,8 +48,9 @@ class InProgressProcess:
 
 
 class Runner:
-    def __init__(self, *, interval, allowed_missing_samples=1, clear_io_caches=True):
+    def __init__(self, *, interval, logs_directory, allowed_missing_samples=1, clear_io_caches=True):
         self.__interval = interval
+        self.__logs_directory = logs_directory
         self.__allowed_missing_samples = allowed_missing_samples
         self.__clear_io_caches = clear_io_caches
 
@@ -58,11 +59,12 @@ class Runner:
             # https://stackoverflow.com/a/25336215/905845
             subprocess.run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches", shell=True, check=True, capture_output=True)
 
-        return self.__Run(self.__interval, self.__allowed_missing_samples, command)()
+        return self.__Run(self.__interval, self.__logs_directory, self.__allowed_missing_samples, command)()
 
     class __Run:
-        def __init__(self, interval, allowed_missing_samples, command):
+        def __init__(self, interval, logs_directory, allowed_missing_samples, command):
             self.__interval = interval
+            self.__logs_directory = logs_directory
             self.__allowed_missing_samples = allowed_missing_samples
             self.__command = command
 
@@ -73,7 +75,8 @@ class Runner:
 
         def __call__(self):
             env = dict(os.environ)
-            env["CHRONES_ENABLED"] = "true"
+            os.makedirs(self.__logs_directory, exist_ok=True)
+            env["CHRONES_LOGS_DIRECTORY"] = os.path.abspath(self.__logs_directory)
             main_process = psutil.Popen(
                 self.__command,
                 env=env,

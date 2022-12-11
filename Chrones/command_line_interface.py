@@ -2,6 +2,7 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
+import os
 
 import pickle
 
@@ -47,12 +48,13 @@ def enable(program_name):
 
 
 @main.command
+@click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
-def run(command):
+def run(logs_dir, command):
     # @todo Take parameters from command-line
-    runner = Runner(interval=0.2, clear_io_caches=False)
+    runner = Runner(interval=0.2, logs_directory=logs_dir, clear_io_caches=False)
     result = runner.run(list(command))
-    with open("run-result.pickle", "wb") as f:
+    with open(os.path.join(logs_dir, "run-result.pickle"), "wb") as f:
         pickle.dump(result, f)
     # @todo Propagate exit code
 

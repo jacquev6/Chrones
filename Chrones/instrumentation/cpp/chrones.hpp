@@ -639,14 +639,14 @@ typedef coordinator_tmpl<RealInfo> coordinator;
 extern std::unique_ptr<coordinator> global_coordinator;
 
 std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
-  const char* const enabled = std::getenv("CHRONES_ENABLED");
+  const char* const logs_directory = std::getenv("CHRONES_LOGS_DIRECTORY");
 
-  if (!enabled) {
+  if (!logs_directory) {
     return nullptr;
   }
 
   static std::ofstream stream(
-    std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv",
+    std::string(logs_directory) + "/" + name + "." + std::to_string(::getpid()) + ".chrones.csv",
     std::ios_base::app);
 
   // Don't use std::make_unique to support C++11

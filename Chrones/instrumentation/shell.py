@@ -7,8 +7,10 @@ import os
 
 
 def enable(program_name):
-    if os.environ.get("CHRONES_ENABLED"):
-        yield f"chrones_filename={program_name}.$!.chrones.csv"
+    logs_directory = os.environ.get("CHRONES_LOGS_DIRECTORY")
+
+    if logs_directory:
+        yield f"chrones_filename={logs_directory}/{program_name}.$!.chrones.csv"
 
         yield "function chrones_start {"
         yield '  echo "$!,0,$(date +%s%N),sw_start,$1,${2:--},${3:--}" >>$chrones_filename'
