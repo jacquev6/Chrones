@@ -43,3 +43,38 @@ Copyright 2020-2022 Vincent Jacques
 - Don't let an outdated version in the development source tree
 - Start working on next version
 - Make sure uploaded packages are clean
+
+# Version 0.1.0
+
+- Display more feature in the example graph (GPU)
+- Display more feature in the example graph (CPU only)
+- Realize mini-chrones imply summaries and don't make sense in png
+- Fix indentation bug
+- Support labels and indexes
+- Document
+- Pre-install 'dacite' in the development Docker image
+- Run the readme example as any other integration test
+- Fix typo
+- Run Python tests in the development cycle
+- Check for copyright notices in all source files
+- Take all monitoring parameters from the command line
+- Support machines without a GPU
+- Refine typing of monitoring results
+- Version the data format for monitoring results
+- Save monitoring results as JSON
+- Speed-up development cycle
+- Factorize
+- Regroup the responsibility of saving and loading monitoring results
+- Todo
+- Make sure streams and exit code are unchanged by 'chrones run'
+- Mark all 'todo's for v1.0.0 or later
+- Let 'chrones report' work from and to different locations
+- Capture help messages from the command-line interface
+- Add '--logs-dir' option to 'chrones run'
+- Enable instrumentation only when run inside monitoring
+- Use "enable" instead of "activate"
+- Whitespace
+- Review 'chrones.hpp'
+- Review the Readme: mark as todo what's not done yet
+- Todo
+- Start working on next version
