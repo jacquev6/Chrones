@@ -48,18 +48,13 @@ class InProgressProcess:
 
 
 class Runner:
-    def __init__(self, *, monitoring_interval, logs_directory, monitor_gpu, allowed_missing_samples=1, clear_io_caches):
+    def __init__(self, *, logs_directory, monitor_gpu, monitoring_interval, allowed_missing_samples):
         self.__monitoring_interval = monitoring_interval
         self.__logs_directory = logs_directory
         self.__monitor_gpu = monitor_gpu
         self.__allowed_missing_samples = allowed_missing_samples
-        self.__clear_io_caches = clear_io_caches
 
     def run(self, command):
-        if self.__clear_io_caches:
-            # https://stackoverflow.com/a/25336215/905845
-            subprocess.run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches", shell=True, check=True, capture_output=True)
-
         return self.__Run(
             command,
             monitoring_interval=self.__monitoring_interval,

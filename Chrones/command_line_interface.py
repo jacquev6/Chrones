@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import sys
+import textwrap
 
 import click
 
@@ -42,21 +43,36 @@ def shell():
 
 @shell.command(help="Display the 'chrones_*' shell fonctions. Use as 'source <(chrones instrument shell enable PROGRAM_NAME)'.")
 @click.argument("program-name")
-def enable(program_name):
+def enable(*, program_name):
     for line in shell_instrumentation.enable(program_name):
         print(line)
 
 
-@main.command(help="Run a program under Chrones' monitoring. Add a '--' before the command if you need to pass options to the command.")
+@main.command(help=textwrap.dedent("""\
+    Run a program under Chrones' monitoring.
+    Add a '--' before the command if you need to pass options to the command.
+
+    You *may* want to clear I/O caches just before running your command.
+    See for example https://stackoverflow.com/a/25336215/905845.
+"""))
 @click.option("--logs-dir", default=".", help="Directory where instrumentation and monitoring logs will be stored.")
+@click.option("--monitor-gpu", is_flag=True, help="Measure GPU usage.")
+@click.option("--monitoring-interval", type=float, default=0.2, help="Interval between two consecutives measures, in seconds.")
+@click.option("--allowed-missing-samples", type=int, default=1, help="Number of successive samples that can be skipped before Chrones start displaying warnings about \"slow monitoring\".")
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
-def run(logs_dir, command):
-    # @todo(v1.0.0) Take parameters from command-line
+def run(
+    *,
+    logs_dir,
+    monitor_gpu,
+    monitoring_interval,
+    allowed_missing_samples,
+    command,
+):
     runner = Runner(
-        monitoring_interval=0.2,
-        monitor_gpu=False,
+        monitor_gpu=monitor_gpu,
         logs_directory=logs_dir,
-        clear_io_caches=False,
+        monitoring_interval=monitoring_interval,
+        allowed_missing_samples=allowed_missing_samples,
     )
     result = runner.run(list(command))
     result.save(logs_dir)
@@ -67,7 +83,7 @@ def run(logs_dir, command):
 @main.command(help="Create a human-readable image from monitoring logs.")
 @click.option("--logs-dir", default=".", help="Directory containing instrumentation and monitoring logs.")
 @click.option("--output-name", default="report.png", help="Output name for the report.")
-def report(logs_dir, output_name):
+def report(*, logs_dir, output_name):
     output_name = os.path.abspath(output_name)
     os.chdir(logs_dir)
     make_graph(output_name)
