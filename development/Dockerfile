@@ -40,4 +40,4 @@ ENV PATH=/home/user/.local/bin:$PATH
 
 # Python packages in user mode, just to speed-up the development cycle
 RUN pip3 install \
-      click matplotlib psutil
+      click matplotlib psutil dacite
