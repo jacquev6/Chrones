@@ -236,13 +236,13 @@ As a complete example, here is the shell script that the image at the top of thi
     source <(chrones instrument shell enable example)
 
 
-    chrones_start sleep-then-run-single
+    chrones_start sleep-then-run-cpu
     sleep 0.5
 
-    dd status=none if=/dev/random of=in.dat bs=1M count=3
+    dd status=none if=/dev/random of=in.dat bs=1M count=2
 
-    chrones_start run-single
-    ./single
+    chrones_start run-cpu
+    ./cpu
     chrones_stop
 
     chrones_stop
@@ -255,35 +255,41 @@ As a complete example, here is the shell script that the image at the top of thi
 
 And the various executables called by the script:
 
-- `single.cpp`:
+- `cpu.cpp`:
 
-<!-- START single.cpp -->
+<!-- START cpu.cpp -->
     #include <time.h>
 
     #include <chrones.hpp>
 
-    CHRONABLE("single");
+    CHRONABLE("cpu");
 
-    void do_some_ios() {
+    void waste_time() {
+      CHRONE();
+
+      usleep(500'000);
+    }
+
+    void input_and_output() {
       CHRONE();
 
       char megabyte[1024 * 1024];
 
       std::ifstream in("in.dat");
 
-      for (int i = 0; i != 4; ++i) {
+      for (int i = 0; i != 2; ++i) {
         in.read(megabyte, sizeof(megabyte));
-        usleep(500'000);
+        waste_time();
         std::ofstream out("out.dat");
         out.write(megabyte, sizeof(megabyte));
-        usleep(500'000);
+        waste_time();
       }
     }
 
-    void something_long() {
+    void use_cpu(int repetitions) {
       CHRONE();
 
-      for (int i = 0; i < 256; ++i) {
+      for (int i = 0; i < repetitions; ++i) {
         volatile double x = 3.14;
         for (int j = 0; j != 1'000'000; ++j) {
           x = x * j;
@@ -291,28 +297,35 @@ And the various executables called by the script:
       }
     }
 
-    void something_else() {
+    void use_several_cores() {
       CHRONE();
 
-      usleep(500'000);
+      #pragma omp parallel for
+      for (int i = 0; i != 8; ++i) {
+        use_cpu(256 + i * 32);
+      }
     }
 
     int main() {
       CHRONE();
 
-      do_some_ios();
+      waste_time();
+
+      input_and_output();
 
       {
         CHRONE("loop");
         for (int i = 0; i != 2; ++i) {
           CHRONE("iteration", i);
 
-          something_else();
-          something_long();
+          waste_time();
+          use_cpu(256);
         }
       }
 
-      something_else();
+      waste_time();
+
+      use_several_cores();
     }
 <!-- STOP -->
 
@@ -324,7 +337,7 @@ This code is built using `make` and the following `Makefile`:
     set -o errexit
     trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
-    rm -f run-results.json example.*.chrones.csv single.*.chrones.csv
+    rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv
 
 
     make
@@ -332,20 +345,20 @@ This code is built using `make` and the following `Makefile`:
 <!-- CHMOD+X run.sh -->
 
 <!-- START Makefile -->
-    all: single
+    all: cpu
 
-    single: single.cpp
-    	g++ -std=c++20 -O3 -I`chrones instrument c++ header-location` single.cpp -o single
+    cpu: cpu.cpp
+    	g++ -std=c++20 -fopenmp -O3 -I`chrones instrument c++ header-location` cpu.cpp -o cpu
 <!-- STOP -->
 <!-- EXTEND Makefile -->
 
-    single: Makefile
+    cpu: Makefile
 <!-- STOP -->
 
 It's executed like this:
 
 <!-- EXTEND run.sh -->
-    chrones run -- ./example.sh
+    OMP_NUM_THREADS=4 chrones run -- ./example.sh
 <!-- STOP -->
 
 And the report is created like this:

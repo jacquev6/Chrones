@@ -3,8 +3,8 @@
 /run-result.json
 /example.sh
 /example.*.chrones.csv
-/single.cpp
-/single
-/single.*.chrones.csv
+/cpu.cpp
+/cpu
+/cpu.*.chrones.csv
 /in.dat
 /out.dat

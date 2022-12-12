@@ -85,10 +85,11 @@ def make_graph(output_file):
                 chrones_ax.broken_barh(
                     [(thread.first_event.timestamp - origin_timestamp, thread.last_event.timestamp - thread.first_event.timestamp)],
                     (bottom_y + 0.75, len(thread.chrones) * 3 - 0.5),
-                    color="orange"
+                    color="orange",
+                    edgecolor="black",
                 )
                 for (name, bars) in thread.chrones.items():
-                    chrones_ax.broken_barh(bars, (bottom_y + 1, 2))
+                    chrones_ax.broken_barh(bars, (bottom_y + 1, 2), edgecolor="black")
                     chrones_ticks_ys.append(bottom_y + 2)
                     chrones_ticks_labels.append(name)
                     bottom_y += 3
