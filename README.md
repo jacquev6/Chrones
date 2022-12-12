@@ -136,7 +136,7 @@ The header is distributed within *Chrones*' Python package.
 You can get is location with `chrones instrument c++ header-location`, that you can pass to the `-I` option of you compiler.
 For example, ``g++ -I`chrones instrument c++ header-location` foo.cpp -o foo``.
 
-<!-- @todo(v1.0.0) Document the minimal C++ version required to compile chrones.hpp -->
+`chrones.hpp` uses variadic macros with `__VA_OPT__`, so if you need to set your `-std` option, you can use either `gnu++11` or `c++20` or later.
 
 Create the coordinator at global scope, before your `main` function:
 
