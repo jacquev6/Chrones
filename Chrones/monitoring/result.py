@@ -18,6 +18,9 @@ import dacite
 dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
 
 
+# WARNING: if you make changes in these classes after version 1.0.0 is published,
+# you may have to change the `format_version` in `RunResults.save`.
+
 @dataclass
 class ProcessInstantMetrics:
     timestamp: float
@@ -119,14 +122,18 @@ class RunResults:
 
     def save(self, logs_dir):
         data = dataclasses.asdict(self)
+        # If you have to change the format_version, you *must* add an integration test
+        # with data in the previous format, to prove we can still load it.
+        file_content = dict(format_version=1, data=data)
         with open(os.path.join(logs_dir, "run-result.json"), "w") as f:
-            json.dump(data, f)
+            json.dump(file_content, f)
 
     @classmethod
     def load(cls) -> RunResults:
-        # @todo(v1.0.0) Version the data format
         with open("run-result.json") as f:
-            data = json.load(f)
+            file_content = json.load(f)
+        assert file_content["format_version"] == 1
+        data = file_content["data"]
         return dacite.from_dict(data_class=cls, data=data, config=dacite.Config(cast=[Tuple]))
 
 
