@@ -31,9 +31,10 @@ def main(args):
     # With Chrones NOT installed
     ############################
 
+    subprocess.run([f"pip3", "install", "-r", "requirements.txt"], stdout=subprocess.DEVNULL, check=True)
+
     run_cpp_tests()
     check_copyright_notices()
-    # @todo(v1.0.0) Run Python tests (python3 -m unittest discover --pattern '*.py')
     # @todo(later) Run Python linter
     # @todo(later) Run ad-hoc check for "from __future__ import" in all Python files
     # @todo(later) Sort Python imports
@@ -53,6 +54,16 @@ def run_cpp_tests():
     subprocess.run(
         ["make", f"-j{max(1, multiprocessing.cpu_count() - 2)}"],
         cwd="Chrones/instrumentation/cpp",
+        check=True,
+    )
+
+def run_python_tests():
+    subprocess.run(
+        [
+            "python3", "-m", "unittest", "discover",
+            "--pattern", "*.py",
+            "--start-directory", "Chrones", "--top-level-directory", ".",
+        ],
         check=True,
     )
 

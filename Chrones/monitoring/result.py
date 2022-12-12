@@ -215,7 +215,7 @@ class MakeChroneEventTestCase(unittest.TestCase):
             StopwatchStart(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
                 function_name="function_name",
                 label="label",
                 index=0,
@@ -228,7 +228,7 @@ class MakeChroneEventTestCase(unittest.TestCase):
             StopwatchStart(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
                 function_name="function_name",
                 label="label",
                 index=None,
@@ -241,7 +241,7 @@ class MakeChroneEventTestCase(unittest.TestCase):
             StopwatchStart(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
                 function_name="function_name",
                 label=None,
                 index=None,
@@ -254,17 +254,17 @@ class MakeChroneEventTestCase(unittest.TestCase):
             StopwatchStop(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
             ),
         )
 
-    def test_stopwatch_summary_no_label(self):
+    def test_stopwatch_summary(self):
         self.assertEqual(
             make_chrone_event(["process_id", "thread_id", "375", "sw_summary", "function_name", "label", 10, 9, 8, 7, 6, 5, 4]),
             StopwatchSummary(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
                 function_name="function_name",
                 label="label",
                 executions_count=10,
@@ -283,7 +283,7 @@ class MakeChroneEventTestCase(unittest.TestCase):
             StopwatchSummary(
                 process_id="process_id",
                 thread_id="thread_id",
-                timestamp=375,
+                timestamp=375e-9,
                 function_name="function_name",
                 label=None,
                 executions_count=10,
