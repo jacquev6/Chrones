@@ -32,9 +32,9 @@ def main(args):
     ############################
 
     run_cpp_tests()
+    check_copyright_notices()
     # @todo(v1.0.0) Run Python tests (python3 -m unittest discover --pattern '*.py')
     # @todo(later) Run Python linter
-    # @todo(v1.0.0) Run ad-hoc check for copyright lines in all files
     # @todo(later) Run ad-hoc check for "from __future__ import" in all Python files
     # @todo(later) Sort Python imports
     # @todo(later) Sort C++ includes
@@ -55,6 +55,33 @@ def run_cpp_tests():
         cwd="Chrones/instrumentation/cpp",
         check=True,
     )
+
+def check_copyright_notices():
+    file_paths = subprocess.run(["git", "ls-files"], capture_output=True, universal_newlines=True, check=True).stdout.splitlines()
+    for file_path in sorted(file_paths):
+        if file_path in ["Chrones/__init__.py"]:
+            continue
+
+        if os.path.basename(file_path) in [".gitignore", "report.png"]:
+            continue
+
+        if file_path.startswith("integration-tests/help/chrones ") and file_path.endswith(" --help"):
+            continue
+
+        found = {
+            re.compile(r"Copyright (\(c\) )?(2020-)?2022 Laurent Cabaret"): False,
+            re.compile(r"Copyright (\(c\) )?(2020-)?2022 Vincent Jacques"): False,
+        }
+        with open(file_path) as f:
+            for line in itertools.islice(f, 10):
+                line = line.strip()
+                for needle in found.keys():
+                    if needle.search(line):
+                        found[needle] = True
+                if all(found.values()):
+                    break
+            else:
+                assert False, file_path
 
 
 def run_integration_tests():

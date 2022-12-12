@@ -1,3 +1,6 @@
+// Copyright 2020-2022 Laurent Cabaret
+// Copyright 2020-2022 Vincent Jacques
+
 #include <unistd.h>
 
 #include <chrones.hpp>

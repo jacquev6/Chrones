@@ -1,3 +1,8 @@
+<!--
+Copyright 2020-2022 Laurent Cabaret
+Copyright 2020-2022 Vincent Jacques
+-->
+
 # Version 0.0.7
 
 - Run 'publish.py' inside a Docker container
