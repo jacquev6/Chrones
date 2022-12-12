@@ -99,7 +99,17 @@ Multiple chrones can be nested.
 This makes them particularly suitable to instrument [structured code](https://en.wikipedia.org/wiki/Structured_programming) with blocks and functions (*i.e.* the vast majority of modern programs).
 From the log of the nested chrones, *Chrones*' reporting is able to reconstruct the evolution of the call stack(s) of the program.
 
-<!-- @todo(v1.0.0) Talk about name, label, and index -->
+Chrones have three identifying attributes: a *name*, an optional *label* and an optional *index*.
+The three of them are used in reports to distinguish between chrones.
+Here is their meaning:
+
+- In languages that support it, the name is set automatically from the name of the enclosing function.
+In languages that don't, we strongly recommend that you use the same convention: a chrone's name comes from the closest named piece of code.
+- It sometimes makes sense to instrument a block inside a function.
+The label is here to identify those blocks.
+- Finaly, when these blocks are iterations of a loop, you can use the index to distinguish them.
+
+See `simple.cpp` at the end of this Readme for a complete example.
 
 <!-- @todo(v1.0.0) #### Mini-chrone -->
 
@@ -127,7 +137,8 @@ You can then use the two functions `chrones_start` and `chrones_stop` to instrum
         chrones_stop
     }
 
-<!-- @todo(v1.0.0) Name, label, and index -->
+`chrones_start` accepts one mandatory argument: the `name`, and two optional ones: the `label` and `index`.
+See their description in the [Concepts](#concepts) section above.
 
 #### C++
 
@@ -142,38 +153,34 @@ Create the coordinator at global scope, before your `main` function:
 
     CHRONABLE("program-name")
 
-    int main() {
-        // Do something
-    }
-
 where `program-name` is... the name of your program.
 
-Then you can instrument functions and blocks using the `CHRONE` macro:
+You can then instrument functions and blocks using the `CHRONE` macro:
 
-    void foo() {
+    int main() {
         CHRONE();
 
-        // Do something
-    }
-
-    void bar() {
-        // Do something
-
         {
-            CHRONE("block label");
+            CHRONE("loop");
+            for (int i = 0; i != 100; ++i) {
+                CHRONE("iteration", i);
+                // Do something
+            }
         }
     }
+
+Then `CHRONE` macro accepts zero to two arguments: the optional label and index. See their description in the [Concepts](#concepts) section above.
+In the example above, all three chrones will have the same name, `"int main()"`.
+`"loop"` and `"iteration"` will be the respective labels of the last two chrones, and the last chrone will also have an index.
 
 *Chrones*' instrumentation can be statically disabled by passing `-DCHRONES_DISABLED` to the compiler.
 In that case, all macros provided by the header will be empty and your code will compile exactly as if it was not using *Chrones*.
 
-Troubleshooting: if you get an `undefined reference to chrones::global_coordinator` error, please double-check you called `CHRONABLE`.
+Troubleshooting tip: if you get an `undefined reference to chrones::global_coordinator` error, double-check you're linking with the translation unit that calls `CHRONABLE`.
 
 Known limitations:
 
-- `CHRONE` cannot be used outside `main`, *e.g.* in constructors and destructors of static variables
-
-<!-- @todo(v1.0.0) Name, label, and index -->
+- `CHRONE` must not be used outside `main`, *e.g.* in constructors and destructors of static variables
 
 <!-- @todo(later) #### Python
 
@@ -298,9 +305,9 @@ And the various executables called by the script:
       do_some_ios();
 
       {
-        // @todo(v1.0.0) CHRONE("loop");
+        CHRONE("loop");
         for (int i = 0; i != 2; ++i) {
-          // @todo(v1.0.0) CHRONE("iteration", i);
+          CHRONE("iteration", i);
 
           something_else();
           something_long();

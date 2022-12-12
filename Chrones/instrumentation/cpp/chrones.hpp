@@ -667,6 +667,8 @@ std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
 
 #else
 
+// @todo(later) Could we make sure at most one CHRONE() without label or index is defined in each function?
+
 // Variadic macros that forwards their arguments to the appropriate constructors
 #define CHRONE(...) auto chrones_stopwatch_##__line__ = chrones::heavy_stopwatch( \
   chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \

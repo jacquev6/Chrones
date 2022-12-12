@@ -64,8 +64,14 @@ def make_graph(output_file):
                 thread.stack.append(event)
             elif event.__class__ == monitoring_result.StopwatchStop:
                 start_event = thread.stack.pop()
-                assert start_event.label is None
-                bars = thread.chrones.setdefault(start_event.function_name, [])
+                name = " - ".join(
+                    str(part)
+                    for part in filter(
+                        lambda p: p is not None,
+                        [start_event.function_name, start_event.label, start_event.index],
+                    )
+                )
+                bars = thread.chrones.setdefault(name, [])
                 bars.append((start_event.timestamp - origin_timestamp, event.timestamp - start_event.timestamp))
             elif event.__class__ == monitoring_result.StopwatchSummary:
                 pass
