@@ -139,7 +139,7 @@ def make_graph(output_file):
         metrics = process.instant_metrics
         rss_ax.plot(
             [m.timestamp - origin_timestamp for m in metrics],
-            [m.memory["rss"] / 1024. / 1024. for m in metrics],
+            [m.memory.rss / 1024. / 1024. for m in metrics],
             ".-",
             label=process.command[-30:],
         )
@@ -186,7 +186,7 @@ def make_graph(output_file):
         metrics = process.instant_metrics
         inputs_ax.plot(
             [m.timestamp - origin_timestamp for m in metrics],
-            [m.io["read_chars"] / 1024. / 1024. for m in metrics],
+            [m.io.read_chars / 1024. / 1024. for m in metrics],
             ".-",
             label=process.command[-30:],
         )
@@ -200,7 +200,7 @@ def make_graph(output_file):
         metrics = process.instant_metrics
         outputs_ax.plot(
             [m.timestamp - origin_timestamp for m in metrics],
-            [m.io["write_chars"] / 1024. / 1024. for m in metrics],
+            [m.io.write_chars / 1024. / 1024. for m in metrics],
             ".-",
             label=process.command[-30:],
         )

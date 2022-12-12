@@ -17,7 +17,7 @@ from .result import (
     RunResults,
     System, SystemInstantMetrics,
     MainProcess, MainProcessGlobalMetrics,
-    Process, ProcessInstantMetrics,
+    Process, ProcessInstantMetrics, MemoryInstantMetrics, InputOutputoInstantMetrics, ContextSwitchInstantMetrics,
 )
 
 
@@ -281,10 +281,10 @@ class Runner:
                     cpu_percent=m.cpu_percent,
                     user_time=m.user_time,
                     system_time=m.system_time,
-                    memory=m.memory._asdict(),
+                    memory=MemoryInstantMetrics(rss=m.memory.rss),
                     open_files=m.open_files,
-                    io=m.io._asdict(),
-                    context_switches=m.context_switches._asdict(),
+                    io=InputOutputoInstantMetrics(read_chars=m.io.read_chars, write_chars=m.io.write_chars),
+                    context_switches=ContextSwitchInstantMetrics(voluntary=m.context_switches.voluntary, involuntary=m.context_switches.involuntary),
                     gpu_percent=m.gpu_percent,
                     gpu_memory=m.gpu_memory,
                 )

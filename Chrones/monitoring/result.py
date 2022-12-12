@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 import csv
 import dataclasses
 import glob
@@ -22,16 +22,33 @@ dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
 # you may have to change the `format_version` in `RunResults.save`.
 
 @dataclass
+class MemoryInstantMetrics:
+    rss: float
+
+
+@dataclass
+class InputOutputoInstantMetrics:
+    read_chars: int
+    write_chars: int
+
+
+@dataclass
+class ContextSwitchInstantMetrics:
+    voluntary: int
+    involuntary: int
+
+
+@dataclass
 class ProcessInstantMetrics:
     timestamp: float
     threads: int
     cpu_percent: float
     user_time: float
     system_time: float
-    memory: Dict  # @todo(v1.0.0) Refine
+    memory: MemoryInstantMetrics
     open_files: int
-    io: Dict  # @todo(v1.0.0) Refine
-    context_switches: Dict  # @todo(v1.0.0) Refine
+    io: InputOutputoInstantMetrics
+    context_switches: ContextSwitchInstantMetrics
     gpu_percent: Optional[float]
     gpu_memory: Optional[float]
 
