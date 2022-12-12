@@ -111,9 +111,7 @@ The label is here to identify those blocks.
 
 See `simple.cpp` at the end of this Readme for a complete example.
 
-<!-- @todo(v1.0.0) #### Mini-chrone -->
-
-<!-- @todo(v1.0.0) Define, explain the added value -->
+<!-- @todo(later) Later because they don't appear on repport.png, only in summaries. #### Mini-chrone -->
 
 ### Language-specific instructions
 

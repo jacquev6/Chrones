@@ -87,3 +87,4 @@ def report(*, logs_dir, output_name):
     output_name = os.path.abspath(output_name)
     os.chdir(logs_dir)
     make_graph(output_name)
+    # @todo(later) Restore summaries (cf. Original chrones-report.py file)
