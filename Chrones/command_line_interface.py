@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 
 import pickle
+import sys
 
 import click
 
@@ -56,7 +57,8 @@ def run(logs_dir, command):
     result = runner.run(list(command))
     with open(os.path.join(logs_dir, "run-result.pickle"), "wb") as f:
         pickle.dump(result, f)
-    # @todo(v1.0.0) Propagate exit code
+    if result.main_process.exit_code != 0:
+        sys.exit(result.main_process.exit_code)
 
 
 @main.command(help="Create a human-readable image from monitoring logs.")

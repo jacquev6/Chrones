@@ -199,7 +199,8 @@ Then launch them using `chrones run -- your_program --with --its --options`.
 
 Everything before the `--` is interpreted as options for `chrones run`.
 Everything after is passed as-is to your program.
-The standard input and output are passed unchanged to your program. <!-- @todo(v1.0.0) Double-check that in an integration test -->
+The standard input and output are passed unchanged to your program.
+The exit code of `chrones run` is the exit code of `your_program`.
 
 Have a look at `chrones run --help` for its detailed usage.
 
