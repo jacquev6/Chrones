@@ -78,3 +78,8 @@ Copyright 2020-2022 Vincent Jacques
 - Review the Readme: mark as todo what's not done yet
 - Todo
 - Start working on next version
+
+# Version 0.1.1
+
+- Fix image location for PyPI
+- Start working on next version
