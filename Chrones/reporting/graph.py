@@ -12,7 +12,7 @@ from ..monitoring import result as monitoring_result
 
 
 def make_graph(output_file):
-    results = monitoring_result.load()
+    results = monitoring_result.RunResults.load()
 
     origin_timestamp = results.main_process.started_between_timestamps[0]
 

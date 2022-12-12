@@ -2,9 +2,8 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
-import os
 
-import pickle
+import os
 import sys
 
 import click
@@ -55,8 +54,7 @@ def run(logs_dir, command):
     # @todo(v1.0.0) Take parameters from command-line
     runner = Runner(interval=0.2, logs_directory=logs_dir, clear_io_caches=False)
     result = runner.run(list(command))
-    with open(os.path.join(logs_dir, "run-result.pickle"), "wb") as f:
-        pickle.dump(result, f)
+    result.save(logs_dir)
     if result.main_process.exit_code != 0:
         sys.exit(result.main_process.exit_code)
 
