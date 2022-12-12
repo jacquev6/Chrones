@@ -5,7 +5,7 @@ Copyright 2020-2022 Vincent Jacques
 
 *Chrones* is a software development tool to visualize runtime statistics (CPU percentage, GPU percentage, memory usage, *etc.*) about your program and correlate them with the phases of your program.
 
-It aims at being very simple to use and provide useful information out-of-the box<!-- @todo(later) *and* at being customizable to your specific use cases -->.
+It aims at being very simple to use and provide useful information out of the box<!-- @todo(later) *and* at being customizable to your specific use cases -->.
 
 Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see exactly how this image is generated [at the end of this Readme](#code-of-the-example-image)):
 
