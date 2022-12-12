@@ -14,7 +14,7 @@ import time
 import psutil
 
 from .result import (
-    RunResults,
+    RunResults, RunSettings,
     System, SystemInstantMetrics,
     MainProcess, MainProcessGlobalMetrics,
     Process, ProcessInstantMetrics, MemoryInstantMetrics, InputOutputoInstantMetrics, ContextSwitchInstantMetrics,
@@ -48,9 +48,10 @@ class InProgressProcess:
 
 
 class Runner:
-    def __init__(self, *, interval, logs_directory, allowed_missing_samples=1, clear_io_caches=True):
-        self.__interval = interval
+    def __init__(self, *, monitoring_interval, logs_directory, monitor_gpu, allowed_missing_samples=1, clear_io_caches):
+        self.__monitoring_interval = monitoring_interval
         self.__logs_directory = logs_directory
+        self.__monitor_gpu = monitor_gpu
         self.__allowed_missing_samples = allowed_missing_samples
         self.__clear_io_caches = clear_io_caches
 
@@ -59,14 +60,21 @@ class Runner:
             # https://stackoverflow.com/a/25336215/905845
             subprocess.run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches", shell=True, check=True, capture_output=True)
 
-        return self.__Run(self.__interval, self.__logs_directory, self.__allowed_missing_samples, command)()
+        return self.__Run(
+            command,
+            monitoring_interval=self.__monitoring_interval,
+            logs_directory=self.__logs_directory,
+            monitor_gpu=self.__monitor_gpu,
+            allowed_missing_samples=self.__allowed_missing_samples,
+        )()
 
     class __Run:
-        def __init__(self, interval, logs_directory, allowed_missing_samples, command):
-            self.__interval = interval
-            self.__logs_directory = logs_directory
-            self.__allowed_missing_samples = allowed_missing_samples
+        def __init__(self, command, *, monitoring_interval, logs_directory, monitor_gpu, allowed_missing_samples):
             self.__command = command
+            self.__monitoring_interval = monitoring_interval
+            self.__logs_directory = logs_directory
+            self.__monitor_gpu = monitor_gpu
+            self.__allowed_missing_samples = allowed_missing_samples
 
             self.__usage_before = resource.getrusage(resource.RUSAGE_CHILDREN)
             self.__monitored_processes = {}
@@ -92,14 +100,14 @@ class Runner:
                 missing_samples = 0
                 while True:
                     iteration += 1
-                    target_timestamp = spawn_time + iteration * self.__interval
+                    target_timestamp = spawn_time + iteration * self.__monitoring_interval
                     timeout = target_timestamp - time.time()
                     if timeout > 0:
                         break
                     else:
                         missing_samples += 1
                 try:
-                    (stdout, stderr) = main_process.psutil_process.communicate(timeout=timeout)
+                    main_process.psutil_process.communicate(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     self.__previous_timestamp = self.__timestamp
                     self.__timestamp = time.time()
@@ -114,6 +122,7 @@ class Runner:
                     self.__terminate()
 
             return RunResults(
+                run_settings=RunSettings(gpu_monitored=self.__monitor_gpu),
                 system=System(instant_metrics=[
                     SystemInstantMetrics(
                         timestamp=m.timestamp,
@@ -143,17 +152,18 @@ class Runner:
             return child
 
         def __run_monitoring_iteration(self):
-            # Start sub-processes as early as possible to give them time to run while we do other stuff
-            nvidia_smi_dmon = subprocess.Popen(
-                ["nvidia-smi", "dmon", "-c", "1", "-s", "t"],
-                stdout=subprocess.PIPE,
-                universal_newlines=True,
-            )
-            nvidia_smi_pmon = subprocess.Popen(
-                ["nvidia-smi", "pmon", "-c", "1", "-s", "um"],
-                stdout=subprocess.PIPE,
-                universal_newlines=True,
-            )
+            if self.__monitor_gpu:
+                # Start sub-processes as early as possible to give them time to run while we do other stuff
+                nvidia_smi_dmon = subprocess.Popen(
+                    ["nvidia-smi", "dmon", "-c", "1", "-s", "t"],
+                    stdout=subprocess.PIPE,
+                    universal_newlines=True,
+                )
+                nvidia_smi_pmon = subprocess.Popen(
+                    ["nvidia-smi", "pmon", "-c", "1", "-s", "um"],
+                    stdout=subprocess.PIPE,
+                    universal_newlines=True,
+                )
 
             for process in list(self.__monitored_processes.values()):
                 try:
@@ -162,8 +172,9 @@ class Runner:
                 except psutil.NoSuchProcess:
                     self.__stop_monitoring_process(process)
 
-            # Use sub-processes as late as possible
-            self.__gather_gpu_metrics(nvidia_smi_dmon, nvidia_smi_pmon)
+            if self.__monitor_gpu:
+                # Use sub-processes as late as possible
+                self.__gather_gpu_metrics(nvidia_smi_dmon, nvidia_smi_pmon)
 
         def __gather_gpu_metrics(self, nvidia_smi_dmon, nvidia_smi_pmon):
             (nvidia_smi_pmon_stdout, _) = nvidia_smi_pmon.communicate()
@@ -201,8 +212,6 @@ class Runner:
             assert parts[1] == "rxpci"
             assert parts[2] == "txpci"
 
-            # @todo(v1.0.0) Support machines with no GPU
-            # @todo(later) Support machines with multiple GPUs
             assert len(lines) == 3  # Only a single device is supported
             parts = lines[2].split()
 

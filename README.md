@@ -344,14 +344,17 @@ Adding instrumentation to your program will change what's observed by the monito
 
 ## Multiple GPUs
 
-Machines with more than one GPU are not supported.
-<!-- @todo(later) Support machines with several GPUs? -->
+Machines with more than one GPU are not yet supported.
+<!-- @todo(later) Support machines with several GPUs -->
 
 # Developing *Chrones* itself
 
-Dependencies:
+You'll need a Linux machine with:
 - a reasonably recent version of Docker
 - a reasonably recent version of Bash
+
+<!-- @todo(later) Support developing on a machine without a GPU. -->
+Oh, and for the moment, you need an NVidia GPU, with drivers installed and `nvidia-container-runtime` configured.
 
 To build everything and run all tests:
 

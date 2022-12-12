@@ -123,8 +123,8 @@ class MainProcess(Process):
 @dataclass
 class SystemInstantMetrics:
     timestamp: float
-    host_to_device_transfer_rate: float
-    device_to_host_transfer_rate: float
+    host_to_device_transfer_rate: Optional[float]
+    device_to_host_transfer_rate: Optional[float]
 
 
 @dataclass
@@ -133,7 +133,13 @@ class System:
 
 
 @dataclass
+class RunSettings:
+    gpu_monitored: bool
+
+
+@dataclass
 class RunResults:
+    run_settings: RunSettings
     system: System
     main_process: MainProcess
 

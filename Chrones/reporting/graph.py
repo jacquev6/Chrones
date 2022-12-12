@@ -16,19 +16,27 @@ def make_graph(output_file):
 
     origin_timestamp = results.main_process.started_between_timestamps[0]
 
-    n = 10
+    n = 10 if results.run_settings.gpu_monitored else 7
     fig, axes = plt.subplots(
         n, 1, squeeze=True,
         sharex=True,
         figsize=(12, 4 * n), layout="constrained",
     )
-    (
-        chrones_ax,
-        cpu_ax, threads_ax,
-        rss_ax,
-        gpu_ax, gpu_mem_ax, gpu_transfers_ax,
-        inputs_ax, outputs_ax, open_files_ax
-    ) = axes
+    if results.run_settings.gpu_monitored:
+        (
+            chrones_ax,
+            cpu_ax, threads_ax,
+            rss_ax,
+            gpu_ax, gpu_mem_ax, gpu_transfers_ax,
+            inputs_ax, outputs_ax, open_files_ax
+        ) = axes
+    else:
+        (
+            chrones_ax,
+            cpu_ax, threads_ax,
+            rss_ax,
+            inputs_ax, outputs_ax, open_files_ax
+        ) = axes
 
     chrones_ticks_ys = []
     chrones_ticks_labels = []
@@ -149,38 +157,39 @@ def make_graph(output_file):
     rss_ax.set_ylim(bottom=0)
     rss_ax.set_ylabel("Memory - RSS (MiB)")
 
-    def plot_gpu(process: monitoring_result.Process):
-        metrics = process.instant_metrics
-        gpu_ax.plot(
-            [m.timestamp - origin_timestamp for m in metrics],
-            [m.gpu_percent for m in metrics],
-            ".-",
-            label=process.command[-30:],
-        )
+    if results.run_settings.gpu_monitored:
+        def plot_gpu(process: monitoring_result.Process):
+            metrics = process.instant_metrics
+            gpu_ax.plot(
+                [m.timestamp - origin_timestamp for m in metrics],
+                [m.gpu_percent for m in metrics],
+                ".-",
+                label=process.command[-30:],
+            )
 
-    iter_processes(results.main_process, before=plot_gpu)
-    gpu_ax.legend()
-    gpu_ax.set_ylim(bottom=0)
-    gpu_ax.set_ylabel("GPU (%)")
+        iter_processes(results.main_process, before=plot_gpu)
+        gpu_ax.legend()
+        gpu_ax.set_ylim(bottom=0)
+        gpu_ax.set_ylabel("GPU (%)")
 
-    def plot_gpu_mem(process: monitoring_result.Process):
-        metrics = process.instant_metrics
-        gpu_mem_ax.plot(
-            [m.timestamp - origin_timestamp for m in metrics],
-            [m.gpu_memory for m in metrics],
-            ".-",
-            label=process.command[-30:],
-        )
+        def plot_gpu_mem(process: monitoring_result.Process):
+            metrics = process.instant_metrics
+            gpu_mem_ax.plot(
+                [m.timestamp - origin_timestamp for m in metrics],
+                [m.gpu_memory for m in metrics],
+                ".-",
+                label=process.command[-30:],
+            )
 
-    iter_processes(results.main_process, before=plot_gpu_mem)
-    gpu_mem_ax.legend()
-    gpu_mem_ax.set_ylim(bottom=0)
-    gpu_mem_ax.set_ylabel("GPU memory (MiB)")
+        iter_processes(results.main_process, before=plot_gpu_mem)
+        gpu_mem_ax.legend()
+        gpu_mem_ax.set_ylim(bottom=0)
+        gpu_mem_ax.set_ylabel("GPU memory (MiB)")
 
-    gpu_transfers_ax.plot([m.timestamp - origin_timestamp for m in results.system.instant_metrics], [m.host_to_device_transfer_rate for m in results.system.instant_metrics], 'o-', label="Host to device",)
-    gpu_transfers_ax.plot([m.timestamp - origin_timestamp for m in results.system.instant_metrics], [m.device_to_host_transfer_rate for m in results.system.instant_metrics], 'o-', label="Device to host",)
-    gpu_transfers_ax.set_ylabel("System-wide\nGPU transfers (MB/s)")
-    gpu_transfers_ax.legend()
+        gpu_transfers_ax.plot([m.timestamp - origin_timestamp for m in results.system.instant_metrics], [m.host_to_device_transfer_rate for m in results.system.instant_metrics], 'o-', label="Host to device",)
+        gpu_transfers_ax.plot([m.timestamp - origin_timestamp for m in results.system.instant_metrics], [m.device_to_host_transfer_rate for m in results.system.instant_metrics], 'o-', label="Device to host",)
+        gpu_transfers_ax.set_ylabel("System-wide\nGPU transfers (MB/s)")
+        gpu_transfers_ax.legend()
 
     def plot_inputs(process: monitoring_result.Process):
         metrics = process.instant_metrics

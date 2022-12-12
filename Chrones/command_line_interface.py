@@ -52,7 +52,12 @@ def enable(program_name):
 @click.argument("command", nargs=-1, type=click.UNPROCESSED)
 def run(logs_dir, command):
     # @todo(v1.0.0) Take parameters from command-line
-    runner = Runner(interval=0.2, logs_directory=logs_dir, clear_io_caches=False)
+    runner = Runner(
+        monitoring_interval=0.2,
+        monitor_gpu=False,
+        logs_directory=logs_dir,
+        clear_io_caches=False,
+    )
     result = runner.run(list(command))
     result.save(logs_dir)
     if result.main_process.exit_code != 0:
