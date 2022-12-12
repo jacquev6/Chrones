@@ -8,40 +8,33 @@ trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
 
 rm -f *.chrones.csv
+make program-1-no-chrones program-1-yes-chrones
 
 
-# De-activated during compilation
-g++ -std=gnu++11 program-1.cpp -I$(chrones instrument c++ header-location) -DCHRONES_DISABLED -o program-1
-
-# Standalone: no log
-./program-1
+# De-activated during compilation, standalone: no log
+./program-1-no-chrones
 if [ -f program-1.*.chrones.csv ]
 then
   false
 fi
 
-# In monitoring: no log
-chrones run -- ./program-1
+# De-activated during compilation, in monitoring: no log
+chrones run -- ./program-1-no-chrones
 if [ -f program-1.*.chrones.csv ]
 then
   false
 fi
 
-
-# Activated during compilation
-g++ -std=gnu++11 program-1.cpp -I$(chrones instrument c++ header-location) -o program-1
-
-# Standalone: still no log
-./program-1
+# Activated during compilation, standalone: still no log
+./program-1-yes-chrones
 if [ -f program-1.*.chrones.csv ]
 then
   false
 fi
 
-# In monitoring: log!
-chrones run -- ./program-1
+# Activated during compilation, in monitoring: log!
+chrones run -- ./program-1-yes-chrones
 test -f program-1.*.chrones.csv
-
 
 # Standalone: no log
 ./program-2.sh

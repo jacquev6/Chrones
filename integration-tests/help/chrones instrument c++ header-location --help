@@ -1,7 +1,7 @@
 Usage: chrones instrument c++ header-location [OPTIONS]
 
-  Display the location of the C++ header(s). Use as 'g++ -I$(chrones
-  instrument c++ header-location)'.
+  Display the location of the C++ header(s). Use as 'g++ -I`chrones instrument
+  c++ header-location`'.
 
 Options:
   --help  Show this message and exit.

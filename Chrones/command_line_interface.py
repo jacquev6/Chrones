@@ -30,7 +30,7 @@ def cpp():
     pass
 
 
-@cpp.command(help="Display the location of the C++ header(s). Use as 'g++ -I$(chrones instrument c++ header-location)'.")
+@cpp.command(help="Display the location of the C++ header(s). Use as 'g++ -I`chrones instrument c++ header-location`'.")
 def header_location():
     print(cpp_instrumentation.location())
 

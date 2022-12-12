@@ -134,7 +134,7 @@ You can then use the two functions `chrones_start` and `chrones_stop` to instrum
 First, `#include <chrones.hpp>`.
 The header is distributed within *Chrones*' Python package.
 You can get is location with `chrones instrument c++ header-location`, that you can pass to the `-I` option of you compiler.
-For example, `g++ -I$(chrones instrument c++ header-location) foo.cpp -o foo`.
+For example, ``g++ -I`chrones instrument c++ header-location` foo.cpp -o foo``.
 
 <!-- @todo(v1.0.0) Document the minimal C++ version required to compile chrones.hpp -->
 
@@ -313,7 +313,7 @@ And the various executables called by the script:
 This code is built using these commands:
 
 <!-- START build.sh -->
-    g++ -std=c++2a -O3 -I$(chrones instrument c++ header-location) single.cpp -o single
+    g++ -std=c++2a -O3 -I`chrones instrument c++ header-location` single.cpp -o single
 <!-- STOP -->
 
 It's executed like this:

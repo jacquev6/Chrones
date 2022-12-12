@@ -7,7 +7,7 @@ set -o errexit
 trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
 
-g++ -std=gnu++11 program-1.cpp -I$(chrones instrument c++ header-location) -o program-1
+make program-1
 rm -rf bar run-result.pickle *.chrones.csv *.png
 mkdir -p toto/tutu
 
@@ -19,7 +19,6 @@ test -f program-2.*.chrones.csv
 chrones report
 test -f report.png
 rm run-result.pickle *.chrones.csv report.png
-
 
 
 chrones run --logs-dir bar/baz -- ./program-2.sh
