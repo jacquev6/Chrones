@@ -2,5 +2,5 @@
 # Copyright 2020-2022 Vincent Jacques
 
 include requirements.txt
-include example/example.png
+include integration-tests/readme-example/report.png
 include Chrones/instrumentation/cpp/chrones.hpp

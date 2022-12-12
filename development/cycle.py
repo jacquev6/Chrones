@@ -45,9 +45,8 @@ def main(args):
 
     subprocess.run([f"pip3", "install", "."], stdout=subprocess.DEVNULL, check=True)
 
+    make_example_integration_test_from_readme()
     run_integration_tests()
-    if not quick:
-        build_example_from_readme()
 
 
 def run_cpp_tests():
@@ -105,35 +104,34 @@ def run_integration_tests():
         )
 
 
-def build_example_from_readme():
-    for f in itertools.chain(
-        glob.glob("example/*.chrones.csv"),
-        glob.glob("example/*.pickle"),
-    ):
-        os.unlink(f)
-
+def make_example_integration_test_from_readme():
     with open("README.md") as f:
         lines = f.readlines()
 
+    executables = []
     files = {}
     current_file_name = None
-    current = ""
     for line in lines:
-        if line.rstrip() == "<!-- STOP -->":
-            assert current_file_name not in files
-            files[current_file_name] = current
-            current_file_name = None
-            current = ""
-        if current_file_name:
-            current += line
-        m = re.fullmatch(r"<!-- START (.+) -->", line.rstrip())
+        line = line.rstrip()
+        m =  re.fullmatch(r"<!-- CHMOD\+X (.+) -->", line)
         if m:
-            current_file_name = m.group(1)
+            executables.append(m.group(1))
+        m =  re.fullmatch(r"(?:-->)?<!-- STOP -->", line)
+        if m:
+            assert current_file_name
+            current_file_name = None
+        if current_file_name:
+            files[current_file_name].append(line)
+        m = re.fullmatch(r"<!-- (START|EXTEND) (.+) -->(?:<!--)?", line)
+        if m:
+            current_file_name = m.group(2)
+            if m.group(1) == "START":
+                files[current_file_name] = []
     assert current_file_name is None, current_file_name
 
     for file_name, file_contents in files.items():
-        file_contents = textwrap.dedent(file_contents)
-        file_path = os.path.join("example", file_name)
+        file_contents = textwrap.dedent("\n".join(file_contents)) + "\n"
+        file_path = os.path.join("integration-tests", "readme-example", file_name)
         try:
             with open(file_path) as f:
                 needs_write = f.read() != file_contents
@@ -141,17 +139,9 @@ def build_example_from_readme():
             needs_write = True
         if needs_write:
             with open(file_path, "w") as f:
-                if file_path.endswith(".sh"):
-                    f.write(textwrap.dedent("""\
-                        #!/bin/bash
-                        set -o errexit
-
-                    """))
                 f.write(file_contents)
-            os.chmod(file_path, 0o755)
-
-    for phase in ["build", "run", "report"]:
-        subprocess.run([f"./{phase}.sh"], cwd="example", check=True)
+        for executable in executables:
+            os.chmod(os.path.join("integration-tests", "readme-example", executable), 0o755)
 
 
 if __name__ == "__main__":

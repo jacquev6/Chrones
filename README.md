@@ -9,7 +9,7 @@ It aims at being very simple to use and provide useful information out of the bo
 
 Here is an example of graph produced by *Chrones* about a shell script launching a few executables (see exactly how this image is generated [at the end of this Readme](#code-of-the-example-image)):
 
-![Example](example/report.png)
+![Example](integration-tests/readme-example/report.png)
 
 *Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/en/publications/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
 
@@ -216,14 +216,18 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 # Code of the example image
 
-As a complete example, here is the shell script that the image at the top of this Readme is about:
+As a complete example, here is the shell script that the image at the top of this Readme is about (named `example.sh`):
 
 <!-- @todo(v1.0.0) Show more things in the example graph -->
 <!-- @todo(v1.0.0) Make the Gantt-ish diagram more readable -->
 
-<!-- START example.sh -->
-    # File name: example.sh
+<!-- START example.sh --><!--
+    #!/bin/bash
 
+    set -o errexit
+    trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
+--><!-- STOP -->
+<!-- EXTEND example.sh -->
     source <(chrones instrument shell enable example)
 
 
@@ -242,19 +246,16 @@ As a complete example, here is the shell script that the image at the top of thi
     sleep 0.7
     chrones_stop
 <!-- STOP -->
+<!-- CHMOD+X example.sh -->
 
 And the various executables called by the script:
 
-<!-- START single.cpp -->
-    // File name: single.cpp
+- `single.cpp`:
 
-    #include <chrono>
-    #include <fstream>
-    #include <thread>
+<!-- START single.cpp -->
+    #include <time.h>
 
     #include <chrones.hpp>
-
-    using namespace std::chrono_literals;
 
     CHRONABLE("single");
 
@@ -267,10 +268,10 @@ And the various executables called by the script:
 
       for (int i = 0; i != 4; ++i) {
         in.read(megabyte, sizeof(megabyte));
-        std::this_thread::sleep_for(500ms);
+        usleep(500'000);
         std::ofstream out("out.dat");
         out.write(megabyte, sizeof(megabyte));
-        std::this_thread::sleep_for(500ms);
+        usleep(500'000);
       }
     }
 
@@ -288,7 +289,7 @@ And the various executables called by the script:
     void something_else() {
       CHRONE();
 
-      std::this_thread::sleep_for(500ms);
+      usleep(500'000);
     }
 
     int main() {
@@ -310,21 +311,41 @@ And the various executables called by the script:
     }
 <!-- STOP -->
 
-This code is built using these commands:
+This code is built using `make` and the following `Makefile`:
 
-<!-- START build.sh -->
-    g++ -std=c++2a -O3 -I`chrones instrument c++ header-location` single.cpp -o single
+<!-- START run.sh --><!--
+    #!/bin/bash
+
+    set -o errexit
+    trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
+
+    rm -f run-results.json example.*.chrones.csv single.*.chrones.csv
+
+
+    make
+--><!-- STOP -->
+<!-- CHMOD+X run.sh -->
+
+<!-- START Makefile -->
+    all: single
+
+    single: single.cpp
+    	g++ -std=c++20 -O3 -I`chrones instrument c++ header-location` single.cpp -o single
+<!-- STOP -->
+<!-- EXTEND Makefile -->
+
+    single: Makefile
 <!-- STOP -->
 
 It's executed like this:
 
-<!-- START run.sh -->
+<!-- EXTEND run.sh -->
     chrones run -- ./example.sh
 <!-- STOP -->
 
 And the report is created like this:
 
-<!-- START report.sh -->
+<!-- EXTEND run.sh -->
     chrones report
 <!-- STOP -->
 
