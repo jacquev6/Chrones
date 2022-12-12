@@ -13,7 +13,10 @@ import shlex
 import unittest
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
+
+
+@dataclass
 class ProcessInstantMetrics:
     timestamp: float
     threads: int
@@ -28,26 +31,26 @@ class ProcessInstantMetrics:
     gpu_memory: int
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class ChroneEvent:
     process_id: str
     thread_id: str
     timestamp: int
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class StopwatchStart(ChroneEvent):
     function_name: str
     label: Optional[str]
     index: Optional[int]
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class StopwatchStop(ChroneEvent):
     pass
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class StopwatchSummary(ChroneEvent):
     function_name: str
     label: Optional[str]
@@ -60,7 +63,7 @@ class StopwatchSummary(ChroneEvent):
     total_duration: int
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class Process:
     command_list: List[str]
     pid: int
@@ -77,7 +80,7 @@ class Process:
         return load_chrone_events(self.pid)
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class MainProcessGlobalMetrics:
     user_time: float
     system_time: float
@@ -89,25 +92,25 @@ class MainProcessGlobalMetrics:
     involuntary_context_switches: int
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class MainProcess(Process):
     exit_code: int
     global_metrics: MainProcessGlobalMetrics
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class SystemInstantMetrics:
     timestamp: float
     host_to_device_transfer_rate: float
     device_to_host_transfer_rate: float
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class System:
     instant_metrics: List[SystemInstantMetrics]
 
 
-@dataclasses.dataclass(kw_only=True, frozen=True)
+@dataclass
 class RunResults:
     system: System
     main_process: MainProcess
