@@ -462,11 +462,11 @@ This code is built using `make` and the following `Makefile`:
     gpu: gpu.cu
     	nvcc -O3 -I`chrones instrument c++ header-location` gpu.cu -o gpu
 <!-- STOP -->
-<!-- EXTEND Makefile -->
+<!-- EXTEND Makefile --><!--
 
     cpu: Makefile
     gpu: Makefile
-<!-- STOP -->
+--><!-- STOP -->
 
 It's executed like this:
 
