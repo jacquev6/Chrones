@@ -12,7 +12,7 @@ version = "0.1.1-dev"
 
 with open("README.md") as f:
     long_description = f.read()
-long_description = long_description.replace("example/example.png", f"https://github.com/jacquev6/Chrones/raw/v{version}/example/example.png")
+long_description = long_description.replace("integration-tests/readme-example/report.png", f"https://github.com/jacquev6/Chrones/raw/v{version}/integration-tests/readme-example/report.png")
 
 with open("requirements.txt") as f:
     install_requires = f.readlines()
