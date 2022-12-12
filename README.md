@@ -223,7 +223,6 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 As a complete example, here is the shell script that the image at the top of this Readme is about (named `example.sh`):
 
-<!-- @todo(v1.0.0) Show more things in the example graph -->
 <!-- @todo(v1.0.0) Make the Gantt-ish diagram more readable -->
 
 <!-- START example.sh --><!--
@@ -236,24 +235,31 @@ As a complete example, here is the shell script that the image at the top of thi
     source <(chrones instrument shell enable example)
 
 
-    chrones_start sleep-then-run-cpu
-    sleep 0.5
+    function waste_time {
+      chrones_start waste_time
+      sleep 0.5
+      chrones_stop
+    }
 
-    dd status=none if=/dev/random of=in.dat bs=1M count=2
+    waste_time
+
+    dd status=none if=/dev/random of=in.dat bs=16M count=1
 
     chrones_start run-cpu
     ./cpu
     chrones_stop
 
+    waste_time
+
+    chrones_start run-gpu
+    ./gpu
     chrones_stop
 
-    chrones_start sleep
-    sleep 0.7
-    chrones_stop
+    waste_time
 <!-- STOP -->
 <!-- CHMOD+X example.sh -->
 
-And the various executables called by the script:
+And the two executables called by the script:
 
 - `cpu.cpp`:
 
@@ -273,20 +279,20 @@ And the various executables called by the script:
     void input_and_output() {
       CHRONE();
 
-      char megabyte[1024 * 1024];
+      char data[4 * 1024 * 1024];
 
       std::ifstream in("in.dat");
 
       for (int i = 0; i != 2; ++i) {
-        in.read(megabyte, sizeof(megabyte));
+        in.read(data, sizeof(data));
         waste_time();
         std::ofstream out("out.dat");
-        out.write(megabyte, sizeof(megabyte));
+        out.write(data, sizeof(data));
         waste_time();
       }
     }
 
-    void use_cpu(int repetitions) {
+    void use_cpu(const int repetitions) {
       CHRONE();
 
       for (int i = 0; i < repetitions; ++i) {
@@ -329,6 +335,109 @@ And the various executables called by the script:
     }
 <!-- STOP -->
 
+- `gpu.cu`:
+
+<!-- START gpu.cu -->
+    #include <cassert>
+
+    #include <chrones.hpp>
+
+    const int block_size = 1024;
+    const int blocks_count = 128;
+    const int data_size = blocks_count * block_size;
+
+    CHRONABLE("gpu");
+
+    void waste_time() {
+      CHRONE();
+
+      usleep(500'000);
+    }
+
+    void transfer_to_device(double* h, double* d) {
+      CHRONE();
+
+      for (int i = 0; i != 8'000'000; ++i) {
+        cudaMemcpy(h, d, data_size * sizeof(double), cudaMemcpyHostToDevice);
+      }
+      cudaDeviceSynchronize();
+    }
+
+    __global__ void use_gpu_(double* data) {
+      const int i = blockIdx.x * block_size + threadIdx.x;
+      assert(i < data_size);
+
+      volatile double x = 3.14;
+      for (int j = 0; j != 700'000; ++j) {
+        x = x * j;
+      }
+      data[i] *= x;
+    }
+
+    void use_gpu(double* data) {
+      CHRONE();
+
+      use_gpu_<<<blocks_count, block_size>>>(data);
+      cudaDeviceSynchronize();
+    }
+
+    void transfer_to_host(double* d, double* h) {
+      CHRONE();
+
+      for (int i = 0; i != 8'000'000; ++i) {
+        cudaMemcpy(d, h, data_size * sizeof(double), cudaMemcpyDeviceToHost);
+      }
+      cudaDeviceSynchronize();
+    }
+
+    int main() {
+      CHRONE();
+
+      waste_time();
+
+      {
+        CHRONE("Init CUDA");
+        cudaFree(0);
+      }
+
+      waste_time();
+
+      double* h = (double*)malloc(data_size * sizeof(double));
+      for (int i = 0; i != data_size; ++i) {
+        h[i] = i;
+      }
+
+      waste_time();
+
+      double* d;
+      cudaMalloc(&d, data_size * sizeof(double));
+
+      waste_time();
+
+      transfer_to_device(h, d);
+
+      waste_time();
+
+      use_gpu(d);
+
+      waste_time();
+
+      transfer_to_host(d, h);
+
+      waste_time();
+
+      cudaFree(d);
+
+      waste_time();
+
+      free(h);
+
+      waste_time();
+    }
+<!-- STOP -->
+
+<!-- @todo(later) Understand why transfers don't show in the report -->
+
 This code is built using `make` and the following `Makefile`:
 
 <!-- START run.sh --><!--
@@ -337,7 +446,7 @@ This code is built using `make` and the following `Makefile`:
     set -o errexit
     trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
-    rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv
+    rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv gpu.*.chrones.csv
 
 
     make
@@ -345,20 +454,24 @@ This code is built using `make` and the following `Makefile`:
 <!-- CHMOD+X run.sh -->
 
 <!-- START Makefile -->
-    all: cpu
+    all: cpu gpu
 
     cpu: cpu.cpp
-    	g++ -std=c++20 -fopenmp -O3 -I`chrones instrument c++ header-location` cpu.cpp -o cpu
+    	g++ -fopenmp -O3 -I`chrones instrument c++ header-location` cpu.cpp -o cpu
+
+    gpu: gpu.cu
+    	nvcc -O3 -I`chrones instrument c++ header-location` gpu.cu -o gpu
 <!-- STOP -->
 <!-- EXTEND Makefile -->
 
     cpu: Makefile
+    gpu: Makefile
 <!-- STOP -->
 
 It's executed like this:
 
 <!-- EXTEND run.sh -->
-    OMP_NUM_THREADS=4 chrones run -- ./example.sh
+    OMP_NUM_THREADS=4 chrones run --monitor-gpu -- ./example.sh
 <!-- STOP -->
 
 And the report is created like this:

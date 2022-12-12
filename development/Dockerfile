@@ -7,8 +7,9 @@ FROM ubuntu:22.04
 RUN set -x \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-      g++ make `# Our build tools` \
+      g++ make `# Build tools` \
       wget ca-certificates cmake `# For Google Test` \
+      software-properties-common dirmngr gpg-agent `# Required when adding the NVidia APT repository` \
       python3 python3-pip python3-venv \
       git ssh \
  && apt-get clean
@@ -26,6 +27,17 @@ RUN set -x \
  && cd ../.. \
  && rm -r googletest-release-1.11.0 \
  && rm release-1.11.0.tar.gz
+
+# NVidia packages
+RUN set -x \
+ && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub \
+ && add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /" \
+ && apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+      cuda-nvcc-11-7 `# Build tools` \
+      cuda-cudart-dev-11-7 `# Direct dependencies` \
+ && apt-get clean
+ENV PATH=/usr/local/cuda-11.7/bin:$PATH
 
 # Python packages
 RUN pip3 install \

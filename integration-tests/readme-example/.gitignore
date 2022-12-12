@@ -6,5 +6,8 @@
 /cpu.cpp
 /cpu
 /cpu.*.chrones.csv
+/gpu.cu
+/gpu
+/gpu.*.chrones.csv
 /in.dat
 /out.dat
