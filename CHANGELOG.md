@@ -83,3 +83,8 @@ Copyright 2020-2022 Vincent Jacques
 
 - Fix image location for PyPI
 - Start working on next version
+
+# Version 0.1.2
+
+- Hide internal stuff in README
+- Start working on next version
