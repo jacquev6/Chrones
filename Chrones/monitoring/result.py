@@ -2,15 +2,17 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
-import os
 
 from typing import Dict, List, Optional, Tuple
 import csv
 import dataclasses
 import glob
-import pickle
+import json
+import os
 import shlex
 import unittest
+
+import dacite
 
 
 dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
@@ -27,8 +29,8 @@ class ProcessInstantMetrics:
     open_files: int
     io: Dict  # @todo(v1.0.0) Refine
     context_switches: Dict  # @todo(v1.0.0) Refine
-    gpu_percent: float
-    gpu_memory: int
+    gpu_percent: Optional[float]
+    gpu_memory: Optional[float]
 
 
 @dataclass
@@ -116,15 +118,16 @@ class RunResults:
     main_process: MainProcess
 
     def save(self, logs_dir):
-        with open(os.path.join(logs_dir, "run-result.pickle"), "wb") as f:
-            pickle.dump(self, f)
+        data = dataclasses.asdict(self)
+        with open(os.path.join(logs_dir, "run-result.json"), "w") as f:
+            json.dump(data, f)
 
     @classmethod
     def load(cls) -> RunResults:
         # @todo(v1.0.0) Version the data format
-        # @todo(v1.0.0) Use json instead of pickle
-        with open("run-result.pickle", "rb") as f:
-            return pickle.load(f)
+        with open("run-result.json") as f:
+            data = json.load(f)
+        return dacite.from_dict(data_class=cls, data=data, config=dacite.Config(cast=[Tuple]))
 
 
 def load_chrone_events(pid):

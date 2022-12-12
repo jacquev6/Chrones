@@ -33,7 +33,7 @@ class InProgressProcessInstantMetrics:
     io: psutil._pslinux.pio
     context_switches: psutil._common.pctxsw
     gpu_percent: Optional[float]
-    gpu_memory: Optional[int]
+    gpu_memory: Optional[float]
 
 
 @dataclasses.dataclass
