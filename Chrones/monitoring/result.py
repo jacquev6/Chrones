@@ -113,6 +113,8 @@ class RunResults:
 
 
 def load() -> RunResults:
+    # @todo(v1.0.0) Version the data format
+    # @todo(v1.0.0) Use json instead of pickle
     with open("run-result.pickle", "rb") as f:
         return pickle.load(f)
 

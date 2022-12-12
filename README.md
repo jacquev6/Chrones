@@ -218,6 +218,9 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 As a complete example, here is the shell script that the image at the top of this Readme is about:
 
+<!-- @todo(v1.0.0) Show more things in the example graph -->
+<!-- @todo(v1.0.0) Make the Gantt-ish diagram more readable -->
+
 <!-- START example.sh -->
     # File name: example.sh
 
