@@ -140,8 +140,8 @@ def make_example_integration_test_from_readme():
         if needs_write:
             with open(file_path, "w") as f:
                 f.write(file_contents)
-        for executable in executables:
-            os.chmod(os.path.join("integration-tests", "readme-example", executable), 0o755)
+    for executable in executables:
+        os.chmod(os.path.join("integration-tests", "readme-example", executable), 0o755)
 
 
 if __name__ == "__main__":
