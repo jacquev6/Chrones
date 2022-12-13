@@ -224,8 +224,6 @@ Out of the box, *Chrones* produces generic reports and graphs, but you can custo
 
 As a complete example, here is the shell script that the image at the top of this Readme is about (named `example.sh`):
 
-<!-- @todo(v1.0.0) Make the Gantt-ish diagram more readable -->
-
 <!-- START example.sh --><!--
     #!/bin/bash
 
@@ -447,7 +445,7 @@ This code is built using `make` and the following `Makefile`:
     set -o errexit
     trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
-    rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv gpu.*.chrones.csv
+    rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv gpu.*.chrones.csv report.png in.dat out.dat
 
 
     make

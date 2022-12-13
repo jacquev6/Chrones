@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 import dataclasses
 
 import matplotlib.pyplot as plt
@@ -16,11 +16,14 @@ def make_graph(output_file):
 
     origin_timestamp = results.main_process.started_between_timestamps[0]
 
+    gantt_grapher = GantGrapher(results)
+
     n = 10 if results.run_settings.gpu_monitored else 7
     fig, axes = plt.subplots(
         n, 1, squeeze=False,
         sharex=True,
-        figsize=(12, 4 * n), layout="constrained",
+        figsize=(12, 4 * n + gantt_grapher.get_height() / 10), layout="constrained",
+        height_ratios=[gantt_grapher.get_height() / 15] + [1 for _ in range(n - 1)],
     )
     if results.run_settings.gpu_monitored:
         (
@@ -38,89 +41,7 @@ def make_graph(output_file):
             (inputs_ax,), (outputs_ax,), (open_files_ax,)
         ) = axes
 
-    chrones_ticks_ys = []
-    chrones_ticks_labels = []
-    bottom_y = 0
-    def plot_chrones(chrone_events: Iterable[monitoring_result.ChroneEvent]):
-        nonlocal chrones_ticks_ys
-        nonlocal chrones_ticks_labels
-        nonlocal bottom_y
-
-        @dataclasses.dataclass
-        class Thread:
-            stack: List[monitoring_result.ChroneEvent]
-            chrones: Dict[str, Tuple[float, float]]
-            first_event: monitoring_result.ChroneEvent
-            last_event: monitoring_result.ChroneEvent
-
-        threads = {}
-        for event in chrone_events:
-            thread = threads.setdefault(event.thread_id, Thread([], {}, None, None))
-            if thread.first_event is None:
-                thread.first_event = event
-            thread.last_event = event
-
-            if event.__class__ == monitoring_result.StopwatchStart:
-                thread.stack.append(event)
-            elif event.__class__ == monitoring_result.StopwatchStop:
-                start_event = thread.stack.pop()
-                name = " - ".join(
-                    str(part)
-                    for part in filter(
-                        lambda p: p is not None,
-                        [start_event.function_name, start_event.label, start_event.index],
-                    )
-                )
-                bars = thread.chrones.setdefault(name, [])
-                bars.append((start_event.timestamp - origin_timestamp, event.timestamp - start_event.timestamp))
-            elif event.__class__ == monitoring_result.StopwatchSummary:
-                pass
-            else:
-                assert False
-        threads = list(threads.values())
-        assert all(t.stack == [] for t in threads)
-
-        for thread in threads:
-            if thread.chrones:
-                chrones_ax.broken_barh(
-                    [(thread.first_event.timestamp - origin_timestamp, thread.last_event.timestamp - thread.first_event.timestamp)],
-                    (bottom_y + 0.75, len(thread.chrones) * 3 - 0.5),
-                    color="orange",
-                    edgecolor="black",
-                )
-                for (name, bars) in thread.chrones.items():
-                    chrones_ax.broken_barh(bars, (bottom_y + 1, 2), edgecolor="black")
-                    chrones_ticks_ys.append(bottom_y + 2)
-                    chrones_ticks_labels.append(name)
-                    bottom_y += 3
-                bottom_y += 1
-
-    def plot_processes(process: monitoring_result.Process):
-        nonlocal chrones_ticks_ys
-        nonlocal chrones_ticks_labels
-        nonlocal bottom_y
-        plot_chrones(process.load_chrone_events())
-        chrones_ax.broken_barh(
-            [(process.started_between_timestamps[0] - origin_timestamp, process.started_between_timestamps[1] - process.started_between_timestamps[0])],
-            (bottom_y, 1),
-            color="grey"
-        )
-        chrones_ax.broken_barh(
-            [(process.started_between_timestamps[1] - origin_timestamp, process.terminated_between_timestamps[0] - process.started_between_timestamps[1])],
-            (bottom_y, 1),
-            color="blue"
-        )
-        chrones_ax.broken_barh(
-            [(process.terminated_between_timestamps[0] - origin_timestamp, process.terminated_between_timestamps[1] - process.terminated_between_timestamps[0])],
-            (bottom_y, 1),
-            color="grey"
-        )
-        chrones_ticks_ys.append(bottom_y + 0.5)
-        chrones_ticks_labels.append(process.command[-30:])
-        bottom_y += 2
-
-    iter_processes(results.main_process, before=plot_processes)
-    chrones_ax.set_yticks(chrones_ticks_ys, labels=chrones_ticks_labels)
+    gantt_grapher.draw(chrones_ax)
 
     def plot_cpu(process: monitoring_result.Process):
         metrics = process.instant_metrics
@@ -245,6 +166,107 @@ def make_graph(output_file):
 
     fig.savefig(output_file, dpi=120)
     plt.close(fig)
+
+
+class GantGrapher:
+    @dataclasses.dataclass
+    class Thread:
+        stack: List[monitoring_result.ChroneEvent]
+        chrones: Dict[str, Tuple[float, float]]
+        first_event: Optional[monitoring_result.ChroneEvent]
+        last_event: Optional[monitoring_result.ChroneEvent]
+
+    def __init__(self, results: monitoring_result.RunResults):
+        self.__results = results
+        self.__origin_timestamp = results.main_process.started_between_timestamps[0]
+        self.__prepare()
+
+    def __prepare(self):
+        self.__processes = []
+        iter_processes(self.__results.main_process, before=lambda p: self.__processes.append(p))
+        self.__threads = {process.pid: self.__prepare_threads(process) for process in self.__processes}
+
+    def __prepare_threads(self, process: monitoring_result.Process):
+        threads = {}
+        for event in process.load_chrone_events():
+            thread = threads.setdefault(event.thread_id, GantGrapher.Thread([], {}, None, None))
+            if thread.first_event is None:
+                thread.first_event = event
+            thread.last_event = event
+
+            if event.__class__ == monitoring_result.StopwatchStart:
+                thread.stack.append(event)
+            elif event.__class__ == monitoring_result.StopwatchStop:
+                start_event = thread.stack.pop()
+                name = " - ".join(
+                    str(part)
+                    for part in filter(
+                        lambda p: p is not None,
+                        [start_event.function_name, start_event.label],
+                    )
+                )
+                chrones = thread.chrones.setdefault(name, [])
+                chrones.append((start_event, event))
+            elif event.__class__ == monitoring_result.StopwatchSummary:
+                pass
+            else:
+                assert False
+        threads = list(threads.values())
+        assert all(t.stack == [] for t in threads)
+
+        return threads
+
+    def get_height(self):
+        return sum(
+            2 + sum(3 + len(thread.chrones) for thread in self.__threads[process.pid])
+            for process in self.__processes
+        ) - 1
+
+    def draw(self, ax):
+        top_y = 0
+
+        for process in self.__processes:
+            start_x = (process.started_between_timestamps[0] + process.started_between_timestamps[1]) / 2 - self.__origin_timestamp
+            end_x = (process.terminated_between_timestamps[0] + process.terminated_between_timestamps[1]) / 2 - self.__origin_timestamp
+            width = end_x - start_x
+
+            threads_height = sum(3 + len(thread.chrones) for thread in self.__threads[process.pid])
+            process_height = 1 + threads_height
+
+            ax.broken_barh([(start_x, width)], (top_y - process_height, process_height), color="#ff8f8f")
+            ax.text(x=start_x, y=top_y - 0.5, s=process.command, ha="left", va="center")
+
+            self.__plot_threads(top_y - 1, self.__threads[process.pid], ax)
+
+            top_y -= 1 + process_height
+
+        assert top_y + 1 == -self.get_height()
+
+        ax.set_ylim(top=0, bottom=top_y + 1)
+        ax.set_yticks([])
+
+    def __plot_threads(self, top_y, threads: List[GantGrapher.Thread], ax):
+        for (thread_index, thread) in enumerate(filter(lambda t: t.chrones, threads)):
+            start_x = thread.first_event.timestamp - self.__origin_timestamp
+            end_x = thread.last_event.timestamp - self.__origin_timestamp
+            width = end_x - start_x
+
+            thread_height = 2 + len(thread.chrones)
+
+            ax.broken_barh([(start_x, width)], (top_y - thread_height, thread_height), color="#8fff8f")
+            ax.text(x=start_x, y=top_y - 0.5, s=f"Thread {thread_index}", ha="left", va="center")
+
+            self.__plot_chrones(start_x, top_y - 1, thread.chrones, ax)
+
+            top_y -= 1 + thread_height
+
+    def __plot_chrones(self, left_x, top_y, chrones, ax: plt.Axes):
+        for (name, events) in sorted(chrones.items(), key=lambda kv: kv[1][0][0].timestamp):
+            bars = [(start_event.timestamp - self.__origin_timestamp, stop_event.timestamp - start_event.timestamp) for (start_event, stop_event) in events]
+            ax.broken_barh(bars, (top_y - 1, 1), color="#8f8fff", edgecolor="black")
+            ax.text(x=left_x, y=top_y - 0.5, s=name, ha="left", va="center")
+
+            top_y -= 1
 
 
 def iter_processes(process, *, before=lambda _: None, after=lambda _: None):
