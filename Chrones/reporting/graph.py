@@ -18,24 +18,24 @@ def make_graph(output_file):
 
     n = 10 if results.run_settings.gpu_monitored else 7
     fig, axes = plt.subplots(
-        n, 1, squeeze=True,
+        n, 1, squeeze=False,
         sharex=True,
         figsize=(12, 4 * n), layout="constrained",
     )
     if results.run_settings.gpu_monitored:
         (
-            chrones_ax,
-            cpu_ax, threads_ax,
-            rss_ax,
-            gpu_ax, gpu_mem_ax, gpu_transfers_ax,
-            inputs_ax, outputs_ax, open_files_ax
+            (chrones_ax,),
+            (cpu_ax,), (threads_ax,),
+            (rss_ax,),
+            (gpu_ax,), (gpu_mem_ax,), (gpu_transfers_ax,),
+            (inputs_ax,), (outputs_ax,), (open_files_ax,)
         ) = axes
     else:
         (
-            chrones_ax,
-            cpu_ax, threads_ax,
-            rss_ax,
-            inputs_ax, outputs_ax, open_files_ax
+            (chrones_ax,),
+            (cpu_ax,), (threads_ax,),
+            (rss_ax,),
+            (inputs_ax,), (outputs_ax,), (open_files_ax,)
         ) = axes
 
     chrones_ticks_ys = []
@@ -240,8 +240,8 @@ def make_graph(output_file):
     open_files_ax.set_ylim(bottom=0)
     open_files_ax.set_ylabel("Open files")
 
-    axes[-1].set_xlim(left=0)
-    axes[-1].set_xlabel("Time (s)")
+    axes[-1][0].set_xlim(left=0)
+    axes[-1][0].set_xlabel("Time (s)")
 
     fig.savefig(output_file, dpi=120)
     plt.close(fig)
