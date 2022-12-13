@@ -7,58 +7,6 @@
 
 #include "chrones.hpp"
 
-
-CHRONABLE("chrones-tests")
-
-namespace foo {
-
-struct Bar {
-  static void actual_file_g(int, float, std::pair<int, float>*) {
-    CHRONE();
-    {
-      MINICHRONE("mini");
-    }
-  }
-};
-
-}  // namespace foo
-
-void actual_file_h() {
-  CHRONE();
-  {
-    MINICHRONE("mini");
-  }
-}
-
-void actual_file_f() {
-  CHRONE();
-
-  #pragma omp parallel for
-  for (int i = 0; i < 6; ++i) {
-    CHRONE("loop a", i);
-    foo::Bar::actual_file_g(42, 57, nullptr);
-  }
-
-  #pragma omp parallel for
-  for (int i = 0; i < 8; ++i) {
-    CHRONE("loop b", i);
-    actual_file_h();
-  }
-}
-
-TEST(ChronesTest, ActualFile) {
-  // This test doesn't actually check anything. It's used only to generate a `.chrones.csv` file for
-  // testing `chrones.py report`.
-  CHRONE();
-  {
-    CHRONE("intermediate 'wwwwww'");
-    actual_file_f();
-  }
-  {
-    CHRONE("intermediate, \"xxxxxx\"");
-  }
-}
-
 TEST(ChronesTest, QuoteForCsv) {
   EXPECT_EQ(chrones::quote_for_csv("a"), "\"a\"");
   EXPECT_EQ(chrones::quote_for_csv("abc\"def"), "\"abc\"\"def\"");
@@ -263,4 +211,14 @@ TEST(ChronesTest, Index) {
     oss.str(),
     "0,0,0,sw_start,\"f\",\"label\",42\n"
     "0,0,0,sw_stop\n");
+}
+
+TEST(ChronesTest, NullCoordinator) {
+  // These are all no-ops, so we just check for bad memory accesses
+  heavy_stopwatch(nullptr, "name");
+  heavy_stopwatch(nullptr, "name", "label");
+  heavy_stopwatch(nullptr, "name", "label", 42);
+  light_stopwatch(nullptr, "name");
+  light_stopwatch(nullptr, "name", "label");
+  light_stopwatch(nullptr, "name", "label", 42);
 }

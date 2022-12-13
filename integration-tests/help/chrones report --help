@@ -1,0 +1,9 @@
+Usage: chrones report [OPTIONS]
+
+  Create a human-readable image from monitoring logs.
+
+Options:
+  --logs-dir TEXT     Directory containing instrumentation and monitoring
+                      logs.
+  --output-name TEXT  Output name for the report.
+  --help              Show this message and exit.

@@ -12,11 +12,6 @@
 #include "chrones.hpp"
 
 
-// We don't want/need to call CHRONABLE in this file, so we have to define 'RealInfo::startup_time'
-namespace chrones {
-  std::chrono::steady_clock::time_point RealInfo::startup_time = std::chrono::steady_clock::now();
-}
-
 using chrones::coordinator;
 using chrones::heavy_stopwatch;
 using chrones::light_stopwatch;

@@ -1,0 +1,19 @@
+Usage: chrones run [OPTIONS] [COMMAND]...
+
+  Run a program under Chrones' monitoring. Add a '--' before the command if
+  you need to pass options to the command.
+
+  You *may* want to clear I/O caches just before running your command. See for
+  example https://stackoverflow.com/a/25336215/905845.
+
+Options:
+  --logs-dir TEXT                 Directory where instrumentation and
+                                  monitoring logs will be stored.
+  --monitor-gpu                   Measure GPU usage.
+  --monitoring-interval FLOAT     Interval between two consecutives measures,
+                                  in seconds.
+  --allowed-missing-samples INTEGER
+                                  Number of successive samples that can be
+                                  skipped before Chrones start displaying
+                                  warnings about "slow monitoring".
+  --help                          Show this message and exit.

@@ -1,0 +1,9 @@
+Usage: chrones instrument c++ [OPTIONS] COMMAND [ARGS]...
+
+  Instrumentation of C++ programs.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  header-location  Display the location of the C++ header(s).

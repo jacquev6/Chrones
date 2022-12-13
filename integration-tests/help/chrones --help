@@ -1,0 +1,13 @@
+Usage: chrones [OPTIONS] COMMAND [ARGS]...
+
+  Chrones is a software development tool to visualize runtime statistics about
+  your program and correlate them with the phases of your program. Please
+  visit https://github.com/jacquev6/Chrones for more details.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  instrument  Everything related to instrumentation.
+  report      Create a human-readable image from monitoring logs.
+  run         Run a program under Chrones' monitoring.

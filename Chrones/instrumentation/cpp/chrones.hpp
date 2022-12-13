@@ -4,25 +4,29 @@
 #ifndef CHRONES_HPP_
 #define CHRONES_HPP_
 
-#ifdef NO_CHRONES
+#ifdef CHRONES_DISABLED
 
 #define CHRONABLE(name)
 
-#define CHRONE(...) do {} while (false)
+#define CHRONE(...)
 
-#define MINICHRONE(...) do {} while (false)
+#define MINICHRONE(...)
 
 #else
+
+#include <unistd.h>
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>  // NOLINT(build/c++11)
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>  // NOLINT(build/c++11)
 #include <sstream>
 #include <string>
 #include <thread>  // NOLINT(build/c++11)
@@ -30,65 +34,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
-#include <boost/thread.hpp>
-
-
-// The Chrones library instruments your code to measure the time taken by code blocks.
-
-// Usage:
-// In your main file, use the CHRONABLE macro, giving it the base name of the csv file you want:
-//     CHRONABLE("my-exec")
-// The code above will generate `my-exec.[PID].chrones.csv` in the working directory.
-// You can then use `chrones.py report my-exec.[PID].chrones.csv` to generate a report.
-// You can also `cat my-exec.*.chrones.csv > my-exec.chrones.csv` and then
-// `chrones.py report my-exec.chrones.csv` to generate a report about several
-// executions of `my-exec`.
-
-// Then in the functions you want to instrument, use the CHRONE macro.
-// This macro accepts optional `label` and `index` parameters, in that order.
-// They can be omitted when instrumenting a whole function:
-//     void f() {
-//       CHRONE();
-//       // body
-//     }
-//
-// The `label` is useful when there are several logical blocks in the function:
-//     void f() {
-//       CHRONE();
-//       {
-//         CHRONE("block A");
-//         // block
-//       }
-//       {
-//         CHRONE("block B");
-//         // block
-//       }
-//     }
-// Note that each block must be in its own set of curly braces.
-//
-// The `index` is useful to measure several iterations of a loop:
-//     void f() {
-//       CHRONE();
-//       for (int i = 0; i != 16; ++i) {
-//         CHRONE("loop", i);
-//         // body
-//       }
-//     }
-// Note that you must add a `label` to be able to give an `index`.
-
-// To deactivate Chrones in a given file, just `#define NO_CHRONES` before `#include <chrones.hpp>`.
-// (You can also call `g++` with `-DNO_CHRONES` to deactivate Chrones in the whole project)
-
-// Known current limitations of the Chrones libraries:
-// - it uses at least one GCC extension (__VA_OPT__)
-// - it is not safe to use outside main (e.g. during initialization of global and static variables)
-// - it is not tested on recursive code. It might or might not work in that case.
-// These limitation might be removed in future versions of the library.
-
-// Troubleshooting:
-// - "undefined reference to chrones::global_coordinator": double-check you called CHRONABLE
-// - "undefined reference to chrones::<<anything else>>": double-check you linked with chrones.o
 
 namespace chrones {
 
@@ -161,7 +106,7 @@ class StreamStatistics {
   double _m2n;
 
   // Temporary, for median, until we
-  // @todo implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
+  // @todo(later) implement binapprox (https://www.stat.cmu.edu/~ryantibs/median/)
   mutable std::vector<float> _samples;
 };
 
@@ -379,7 +324,6 @@ class coordinator_tmpl {
   }
 
  public:
-  // @todo Add logs of level TRACE
   void start_heavy_stopwatch(
     const char* function
   ) {
@@ -448,7 +392,7 @@ class coordinator_tmpl {
   void add_summary_events() {
     const std::size_t thread_id = Info::get_thread_id();
     const int64_t stop_time = Info::get_time();
-    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    std::lock_guard<std::mutex> guard(_statistics_mutex);
     for (const auto& stat : _statistics) {
       const char* function;
       const char* label;
@@ -472,12 +416,12 @@ class coordinator_tmpl {
       const char* function,
       const char* label,
       const int64_t duration) {
-    boost::lock_guard<boost::mutex> guard(_statistics_mutex);
+    std::lock_guard<std::mutex> guard(_statistics_mutex);
     _statistics[std::make_tuple(function, label)].update(duration);
   }
 
   void add_event(std::unique_ptr<Event> event) {
-    boost::lock_guard<boost::mutex> guard(_events_mutex);
+    std::lock_guard<std::mutex> guard(_events_mutex);
     _events.push_back(std::move(event));
   }
 
@@ -493,7 +437,7 @@ class coordinator_tmpl {
   void flush_events() {
     std::vector<std::unique_ptr<Event>> events;
     {
-      boost::lock_guard<boost::mutex> guard(_events_mutex);
+      std::lock_guard<std::mutex> guard(_events_mutex);
       if (_events.empty()) {
         return;
       }
@@ -511,15 +455,13 @@ class coordinator_tmpl {
   std::ostream& _stream;
 
   std::vector<std::unique_ptr<Event>> _events;
-  boost::mutex _events_mutex;
+  std::mutex _events_mutex;
 
   std::map<std::tuple<const char*, const char*>, StreamStatistics> _statistics;
-  boost::mutex _statistics_mutex;
+  std::mutex _statistics_mutex;
 
   std::atomic_bool _work_done;
-  // Using boost::thread instead of std::thread to avoid this segmentation fault:
-  // https://stackoverflow.com/questions/35116327/when-g-static-link-pthread-cause-segmentation-fault-why
-  boost::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
+  std::thread _worker;  // Keep _worker last: all other members must be fully constructed before it starts
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -533,7 +475,9 @@ class heavy_stopwatch_tmpl {
       coordinator_tmpl<Info>* coordinator,
       const char* function) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function);
+    }
   }
 
   heavy_stopwatch_tmpl(
@@ -541,7 +485,9 @@ class heavy_stopwatch_tmpl {
       const char* function,
       const char* label) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function, label);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function, label);
+    }
   }
 
   heavy_stopwatch_tmpl(
@@ -550,11 +496,15 @@ class heavy_stopwatch_tmpl {
       const char* label,
       const int index) :
         _coordinator(coordinator) {
-    _coordinator->start_heavy_stopwatch(function, label, index);
+    if (_coordinator) {
+      _coordinator->start_heavy_stopwatch(function, label, index);
+    }
   }
 
   ~heavy_stopwatch_tmpl() {
-    _coordinator->stop_heavy_stopwatch();
+    if (_coordinator) {
+      _coordinator->stop_heavy_stopwatch();
+    }
   }
 
   heavy_stopwatch_tmpl(const heavy_stopwatch_tmpl&) = default;
@@ -574,11 +524,13 @@ class plain_light_stopwatch_tmpl {
     const char* function) :
     _coordinator(coordinator),
     _function(function),
-    _start_time(coordinator->start_light_stopwatch())
+    _start_time(_coordinator ? _coordinator->start_light_stopwatch() : 0)
   {}
 
   ~plain_light_stopwatch_tmpl() {
-    _coordinator->stop_light_stopwatch(_function, _start_time);
+    if (_coordinator) {
+      _coordinator->stop_light_stopwatch(_function, _start_time);
+    }
   }
 
   plain_light_stopwatch_tmpl(const plain_light_stopwatch_tmpl&) = default;
@@ -602,11 +554,13 @@ class labelled_light_stopwatch_tmpl {
       _coordinator(coordinator),
       _function(function),
       _label(label),
-      _start_time(coordinator->start_light_stopwatch())
+      _start_time(_coordinator ? _coordinator->start_light_stopwatch() : 0)
   {}
 
   ~labelled_light_stopwatch_tmpl() {
-    _coordinator->stop_light_stopwatch(_function, _label, _start_time);
+    if (_coordinator) {
+      _coordinator->stop_light_stopwatch(_function, _label, _start_time);
+    }
   }
 
   labelled_light_stopwatch_tmpl(const labelled_light_stopwatch_tmpl&) = default;
@@ -639,10 +593,9 @@ labelled_light_stopwatch_tmpl<Info> light_stopwatch_tmpl(
 }
 
 struct RealInfo {
-  static std::chrono::steady_clock::time_point startup_time;
-
   static int64_t get_time() {
-    return std::chrono::nanoseconds(std::chrono::steady_clock::now() - startup_time).count();
+    const auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
   }
 
   static int get_process_id() {
@@ -682,18 +635,28 @@ inline labelled_light_stopwatch_tmpl<RealInfo> light_stopwatch(
 
 typedef coordinator_tmpl<RealInfo> coordinator;
 
-extern coordinator global_coordinator;
+extern std::unique_ptr<coordinator> global_coordinator;
+
+std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
+  const char* const logs_directory = std::getenv("CHRONES_LOGS_DIRECTORY");
+
+  if (!logs_directory) {
+    return nullptr;
+  }
+
+  static std::ofstream stream(
+    std::string(logs_directory) + "/" + name + "." + std::to_string(::getpid()) + ".chrones.csv",
+    std::ios_base::app);
+
+  // Don't use std::make_unique to support C++11
+  return std::unique_ptr<coordinator>(new coordinator(stream));
+}
 
 }  // namespace chrones
 
 #define CHRONABLE(name) \
   namespace chrones { \
-    std::chrono::steady_clock::time_point RealInfo::startup_time = std::chrono::steady_clock::now(); \
-\
-    std::ofstream global_stream( \
-      std::string(name) + "." + std::to_string(::getpid()) + ".chrones.csv", std::ios_base::app); \
-\
-    coordinator global_coordinator(global_stream); \
+    std::unique_ptr<coordinator> global_coordinator = make_global_coordinator(name); \
   }
 
 #ifdef __CUDA_ARCH__
@@ -704,13 +667,15 @@ extern coordinator global_coordinator;
 
 #else
 
+// @todo(later) Could we make sure at most one CHRONE() without label or index is defined in each function?
+
 // Variadic macros that forwards their arguments to the appropriate constructors
 #define CHRONE(...) auto chrones_stopwatch_##__line__ = chrones::heavy_stopwatch( \
-  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
+  chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #define MINICHRONE(...) auto chrones_stopwatch_##__line__ = chrones::light_stopwatch( \
-  &chrones::global_coordinator, __PRETTY_FUNCTION__ \
+  chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \
   __VA_OPT__(,) __VA_ARGS__)  // NOLINT(whitespace/comma)
 
 #endif
