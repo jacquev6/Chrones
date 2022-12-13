@@ -7,7 +7,7 @@ set -o errexit
 cd "$(dirname "${BASH_SOURCE[0]}")/"
 
 
-image=$(docker build --build-arg UID=$(id -u) development --quiet)
+docker build --build-arg UID=$(id -u) development --tag chrones-development
 
 docker run \
   --rm --interactive --tty \
@@ -16,5 +16,5 @@ docker run \
   --mount type=bind,src=$HOME/.ssh/known_hosts,dst=/home/user/.ssh/known_hosts \
   --mount type=bind,src=$HOME/.pypirc,dst=/home/user/.pypirc,ro \
   --volume "$PWD:/wd" --workdir /wd \
-  $image \
+  chrones-development \
     python3 development/publish.py "$@"

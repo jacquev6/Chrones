@@ -7,12 +7,12 @@ set -o errexit
 cd "$(dirname "${BASH_SOURCE[0]}")/"
 
 
-image=$(docker build --build-arg UID=$(id -u) development --quiet)
+docker build --build-arg UID=$(id -u) development --tag chrones-development
 
 docker run \
   --rm --interactive --tty \
   --volume "$PWD:/wd" --workdir /wd \
   --gpus all \
   --pid=host `# Let nvidia-smi see processes (https://github.com/NVIDIA/nvidia-docker/issues/179#issuecomment-597701603)` \
-  $image \
+  chrones-development \
     python3 development/cycle.py "$@"
