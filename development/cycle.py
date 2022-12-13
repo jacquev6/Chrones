@@ -11,29 +11,17 @@ import multiprocessing
 import os
 import re
 import subprocess
-import sys
 import textwrap
 
 
-def main(args):
-    assert len(args) in [1, 2]
-    if len(args) == 2:
-        long = args[1] == "--long"
-        quick = args[1] == "--quick"
-        if not (long or quick):
-            print("Unknown argument:", args[1])
-            print(f"Usage: {args[0]} [--long|--quick]")
-            exit(1)
-    else:
-        long = False
-        quick = False
-
+def main():
     # With Chrones NOT installed
     ############################
 
     subprocess.run([f"pip3", "install", "-r", "requirements.txt"], stdout=subprocess.DEVNULL, check=True)
 
     run_cpp_tests()
+    run_python_tests()
     check_copyright_notices()
     # @todo(later) Run Python linter
     # @todo(later) Run ad-hoc check for "from __future__ import" in all Python files
@@ -56,6 +44,7 @@ def run_cpp_tests():
         check=True,
     )
 
+
 def run_python_tests():
     subprocess.run(
         [
@@ -65,6 +54,7 @@ def run_python_tests():
         ],
         check=True,
     )
+
 
 def check_copyright_notices():
     file_paths = subprocess.run(["git", "ls-files"], capture_output=True, universal_newlines=True, check=True).stdout.splitlines()
@@ -92,16 +82,6 @@ def check_copyright_notices():
                     break
             else:
                 assert False, file_path
-
-
-def run_integration_tests():
-    for test_file_name in glob.glob("integration-tests/*/run.sh"):
-        print(test_file_name)
-        subprocess.run(
-            ["./run.sh"],
-            cwd=os.path.dirname(test_file_name),
-            check=True,
-        )
 
 
 def make_example_integration_test_from_readme():
@@ -144,5 +124,15 @@ def make_example_integration_test_from_readme():
         os.chmod(os.path.join("integration-tests", "readme-example", executable), 0o755)
 
 
+def run_integration_tests():
+    for test_file_name in glob.glob("integration-tests/*/run.sh"):
+        print(test_file_name)
+        subprocess.run(
+            ["./run.sh"],
+            cwd=os.path.dirname(test_file_name),
+            check=True,
+        )
+
+
 if __name__ == "__main__":
-    main(sys.argv)
+    main()

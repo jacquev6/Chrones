@@ -46,7 +46,7 @@ def bump_version(part):
     assert dev_version.prerelease == "dev"
     assert dev_version.build is None
 
-    print("Last version:", dev_version)
+    print("Development version:", dev_version)
     if part == "patch":
         new_version = dev_version.replace(prerelease=None)
     elif part == "minor":
@@ -68,6 +68,8 @@ def bump_version(part):
 
 
 def update_changelog(new_version):
+    # @todo(later) Fix order of changelog: put recent versions first
+
     tags = subprocess.run(
         ["git", "tag"],
         stdout=subprocess.PIPE, universal_newlines=True,

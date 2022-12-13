@@ -200,7 +200,8 @@ You can also instrument blocks that are not functions:
 ## Run using `chrones run`
 
 Compile your executable(s) if required.
-Then launch them using `chrones run -- your_program --with --its --options`.
+Then launch them using `chrones run -- your_program --with --its --options`,
+or `chrones run --monitor-gpu -- your_program` if your code uses an NVidia GPU.
 
 Everything before the `--` is interpreted as options for `chrones run`.
 Everything after is passed as-is to your program.
@@ -510,15 +511,7 @@ Oh, and for the moment, you need an NVidia GPU, with drivers installed and `nvid
 
 To build everything and run all tests:
 
-    ./run-development-cycle.sh --long
-
-To skip particularly long tests:
-
     ./run-development-cycle.sh
-
-Or even:
-
-    ./run-development-cycle.sh --quick
 
 To [bump the version number](semver.org) and publish on PyPI:
 
