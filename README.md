@@ -445,6 +445,11 @@ This code is built using `make` and the following `Makefile`:
     set -o errexit
     trap 'echo "Error on ${BASH_SOURCE[0]}:$LINENO"' ERR
 
+    if [[ -z "$CHRONES_DEV_USE_GPU" ]]
+    then
+      exit
+    fi
+
     rm -f run-results.json example.*.chrones.csv cpu.*.chrones.csv gpu.*.chrones.csv report.png in.dat out.dat
 
 
