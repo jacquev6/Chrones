@@ -3,6 +3,10 @@ Copyright 2020-2022 Laurent Cabaret
 Copyright 2020-2022 Vincent Jacques
 -->
 
+# Version 1.0.3
+
+- Restore summaries (from original chrones-report.py) but keep them hidden for now because the interface will likely change
+
 # Version 1.0.2
 
 No changes in the published package; only tweaks in the development and publication scripts.

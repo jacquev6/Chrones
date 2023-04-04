@@ -98,7 +98,6 @@ def update_changelog(new_version):
 def make_publication_commit(new_version):
     subprocess.run(["git", "add", "setup.py", "CHANGELOG.md"], check=True)
     subprocess.run(["git", "commit", "-m", f"Publish version {new_version}"], stdout=subprocess.DEVNULL, check=True)
-    subprocess.run(["git", "push"], check=True)
     subprocess.run(["git", "tag", f"v{new_version}"], check=True)
     subprocess.run(["git", "push", f"--tags"], check=True)
 
@@ -126,6 +125,7 @@ def prepare_next_version(new_version):
 
     subprocess.run(["git", "add", "setup.py"], check=True)
     subprocess.run(["git", "commit", "-m", f"Start working on next version"], stdout=subprocess.DEVNULL, check=True)
+    subprocess.run(["git", "push"], check=True)
 
 
 if __name__ == "__main__":
