@@ -637,7 +637,7 @@ typedef coordinator_tmpl<RealInfo> coordinator;
 
 extern std::unique_ptr<coordinator> global_coordinator;
 
-std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
+inline std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
   const char* const logs_directory = std::getenv("CHRONES_LOGS_DIRECTORY");
 
   if (!logs_directory) {
@@ -669,6 +669,8 @@ std::unique_ptr<coordinator> make_global_coordinator(const char* name) {
 
 // @todo(later) Could we make sure at most one CHRONE() without label or index is defined in each function?
 
+// @todo Provide non-variadic versions of these macros to support older compilers
+// (Define variadic macros inside '#if __cplusplus >= n' block)
 // Variadic macros that forwards their arguments to the appropriate constructors
 #define CHRONE(...) auto chrones_stopwatch_##__line__ = chrones::heavy_stopwatch( \
   chrones::global_coordinator.get(), __PRETTY_FUNCTION__ \
