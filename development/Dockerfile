@@ -12,6 +12,7 @@ RUN set -x \
       software-properties-common dirmngr gpg-agent `# Required when adding the NVidia APT repository` \
       python3 python3-pip python3-venv \
       git ssh \
+      jq \
  && apt-get clean
 
 # Google Test

@@ -2,6 +2,7 @@
 # Copyright 2020-2022 Vincent Jacques
 
 from __future__ import annotations
+import json
 
 import os
 import sys
@@ -14,6 +15,7 @@ from .instrumentation import shell as shell_instrumentation
 from .instrumentation import cpp as cpp_instrumentation
 from .monitoring.runner import Runner
 from .reporting.graph import make_graph
+from .reporting.summaries import make_summaries
 
 
 @click.group(help="Chrones is a software development tool to visualize runtime statistics about your program and correlate them with the phases of your program. Please visit https://github.com/jacquev6/Chrones for more details.")
@@ -83,8 +85,11 @@ def run(
 @main.command(help="Create a human-readable image from monitoring logs.")
 @click.option("--logs-dir", default=".", help="Directory containing instrumentation and monitoring logs.")
 @click.option("--output-name", default="report.png", help="Output name for the report.")
-def report(*, logs_dir, output_name):
+@click.option("--with-summaries", default=None, hidden=True)
+def report(*, logs_dir, output_name, with_summaries):
     output_name = os.path.abspath(output_name)
     os.chdir(logs_dir)
     make_graph(output_name)
-    # @todo(later) Restore summaries (cf. Original chrones-report.py file)
+    if with_summaries is not None:
+        with open(with_summaries, "w") as f:
+            json.dump(make_summaries(), f)
