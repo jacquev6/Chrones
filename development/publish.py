@@ -33,7 +33,7 @@ def check_cleanliness():
 
     not_commited = subprocess.run(["git", "diff", "--stat", "--staged", "--exit-code"], stdout=subprocess.DEVNULL)
     if not_commited.returncode != 0:
-        input("WARNING: Some changes are staged but not commited. They will be included in the publication commit. Press enter to proceed, Ctrl+C to cancel.")
+        input("WARNING: Some changes are staged but not committed. They will be included in the publication commit. Press enter to proceed, Ctrl+C to cancel.")
 
 
 def bump_version(part):
