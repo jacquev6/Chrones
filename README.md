@@ -37,7 +37,7 @@ The reporting part reads the logs produced by the instrumentation and monitoring
 
 The instrumentation part is completely optional.
 You can use the monitoring part on non-instrumented programs,
-or even on partially instrumented programs like a shell script calling an instrumented executable and a non-instrumented executable.
+or even on partially instrumented programs like a shell script calling two executables, one instrumented and one not.
 The graphs produced by *Chrones*' reporting will just miss information about your program's phases.
 
 We've chosen the command-line as the main user interface for *Chrones*' to allow easy integration into your automated workflows.
@@ -70,7 +70,7 @@ Install them with `pip install Chrones`.
 
 The instrumentation parts are distributed in language-specific ways.
 
-The Python version comes with the `Chrones` Python packages you've just installed.
+<!-- @todo The Python version comes with the `Chrones` Python packages you've just installed. -->
 
 The C++ and shell languages don't really have package managers, so the C++ and shell versions happen to also be distributed within the Python package.
 
@@ -88,12 +88,12 @@ The instrumentation libraries are based on the following concepts:
 The *coordinator* is a single object that centralizes measurements and writes them into a log file.
 
 It also takes care of enabling or disabling instrumentation: the log will be created if and only if it detects it's being run inside *Chrones*' monitoring.
-This lets you run your programm outside *Chrones*' monitoring as if it was not instrumented.
+This lets you run your program outside *Chrones*' monitoring as if it was not instrumented.
 
 #### Chrone
 
 A *chrone* is the main instrumentation tool.
-You can think of it as a stopwatch that logs an event when it's started and another event when it's stoped.
+You can think of it as a stopwatch that logs an event when it's started and another event when it's stopped.
 
 Multiple chrones can be nested.
 This makes them particularly suitable to instrument [structured code](https://en.wikipedia.org/wiki/Structured_programming) with blocks and functions (*i.e.* the vast majority of modern programs).
@@ -107,11 +107,11 @@ Here is their meaning:
 In languages that don't, we strongly recommend that you use the same convention: a chrone's name comes from the closest named piece of code.
 - It sometimes makes sense to instrument a block inside a function.
 The label is here to identify those blocks.
-- Finaly, when these blocks are iterations of a loop, you can use the index to distinguish them.
+- Finally, when these blocks are iterations of a loop, you can use the index to distinguish them.
 
 See `simple.cpp` at the end of this Readme for a complete example.
 
-<!-- @todo(later) Later because they don't appear on repport.png, only in summaries. #### Mini-chrone -->
+<!-- @todo(later) Later because they don't appear on report.png, only in summaries. #### Mini-chrone -->
 
 ### Language-specific instructions
 
@@ -167,7 +167,7 @@ You can then instrument functions and blocks using the `CHRONE` macro:
         }
     }
 
-Then `CHRONE` macro accepts zero to two arguments: the optional label and index. See their description in the [Concepts](#concepts) section above.
+The `CHRONE` macro accepts zero to two arguments: the optional label and index. See their description in the [Concepts](#concepts) section above.
 In the example above, all three chrones will have the same name, `"int main()"`.
 `"loop"` and `"iteration"` will be the respective labels of the last two chrones, and the last chrone will also have an index.
 
