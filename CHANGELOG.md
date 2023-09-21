@@ -18,3 +18,7 @@ No changes in the published package; only tweaks in the development and publicat
 # Version 1.0.0
 
 Initial release.
+
+# Version 1.1.0
+
+- Support Python < 3.10
