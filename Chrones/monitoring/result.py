@@ -10,13 +10,16 @@ import glob
 import json
 import os
 import shlex
+import sys
 import unittest
 
 import dacite
 
 
-dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
-
+if sys.version_info < (3, 10):
+    dataclass = dataclasses.dataclass(frozen=True)
+else:
+    dataclass = dataclasses.dataclass(kw_only=True, frozen=True, slots=True)
 
 # WARNING: if you make changes in these classes after version 1.0.0 is published,
 # you may have to change the `format_version` in `RunResults.save`.
