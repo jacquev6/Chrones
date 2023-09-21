@@ -25,4 +25,4 @@ diff <(echo toto | cat -A) <(echo toto | chrones run -- cat -A)
 diff <(bash -c "echo toto >&2" 2>&1) <(chrones run -- bash -c "echo toto >&2" 2>&1)
 
 # Environment is barely changed
-diff <(env | grep -v -e '^_=') <(chrones run -- env | grep -v -e '^_=' -e '^CHRONES_')
+diff <(env | grep -v -e '^_=') <(chrones run -- env | grep -v -e '^_=' -e '^CHRONES_LOGS_DIRECTORY=')
