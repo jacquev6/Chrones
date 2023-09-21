@@ -11,7 +11,7 @@ Here is an example of graph produced by *Chrones* about a shell script launching
 
 ![Example](integration-tests/readme-example/report.png)
 
-*Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/en/publications/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
+*Chrones* was sponsored by [Laurent Cabaret](https://cabaretl.pages.centralesupelec.fr/) from the [MICS](http://www.mics.centralesupelec.fr/) and written by [Vincent Jacques](https://vincent-jacques.net).
 
 It's licensed under the [MIT license](http://choosealicense.com/licenses/mit/).
 Its [documentation and source code](https://github.com/jacquev6/Chrones) are on GitHub.
