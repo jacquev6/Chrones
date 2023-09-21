@@ -107,7 +107,16 @@ def publish_to_pypi():
     shutil.rmtree("build", ignore_errors=True)
     shutil.rmtree("Chrones.egg-info", ignore_errors=True)
     subprocess.run(["python3", "-m", "build"])
-    subprocess.run(["twine", "upload"] + glob.glob("dist/*"))
+    # The --repository option on next line assumes ~/.pypirc contains:
+    # [distutils]
+    #   index-servers=
+    #     ...
+    #     Chrones
+    # [Chrones]
+    #   repository = https://upload.pypi.org/legacy/
+    #   username = __token__
+    #   password = ... a token for package Chrones
+    subprocess.run(["twine", "upload", "--repository", "Chrones"] + glob.glob("dist/*"), check=True)
 
 
 def prepare_next_version(new_version):
